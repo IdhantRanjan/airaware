@@ -1,0 +1,27 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body,
+#root {
+  background: #080808;
+  color: #c8c8c8;
+  min-height: 100vh;
+  font-family: "Syne", sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #111;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+}
+
+.mono {
+  font-family: "Space Mono", monospace;
+}

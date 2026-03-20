@@ -1,0 +1,53 @@
+name: Refresh Research Data
+
+# Runs once daily — research dataset is static (Nov 2025), no need to refresh often.
+# Live sensor data is handled by scripts/live_collector.py running on Railway/locally.
+on:
+  schedule:
+    - cron: "0 6 * * *"   # 06:00 UTC daily
+  workflow_dispatch:        # allow manual trigger from GitHub Actions UI
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Export research dashboard data
+        env:
+          PURPLEAIR_API_KEY: ${{ secrets.PURPLEAIR_API_KEY }}
+        run: python3 export_dashboard_data.py
+
+      - name: Copy data to dashboard public
+        run: |
+          if [ -f data.json ]; then
+            cp data.json dashboard/public/data.json
+            echo "data.json copied to dashboard/public/"
+          else
+            echo "No data.json generated, skipping copy."
+          fi
+
+      - name: Commit updated data if changed
+        run: |
+          git config user.name  "airaware-bot"
+          git config user.email "airaware@users.noreply.github.com"
+          git add dashboard/public/data.json || true
+          git diff --staged --quiet || git commit -m "chore: refresh research dataset [skip ci]"
+          git push || true

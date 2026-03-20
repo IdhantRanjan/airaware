@@ -1,0 +1,51 @@
+# Environment variables — never commit these
+.env
+.env.local
+dashboard/.env.local
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+pip-wheel-metadata/
+*.pyc
+
+# Node / dashboard
+node_modules/
+dashboard/node_modules/
+dashboard/dist/
+.DS_Store
+*.log
+npm-debug.log*
+
+# Vite
+dist/
+dist-ssr/
+*.local
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Data files (large)
+*.csv
+data/raw/
+
+# Playwright
+/test-results/
+/playwright-report/
