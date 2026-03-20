@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { C, T, card, glassCard, label as labelStyle, sectionHeading, bodyText, gradientText } from "../tokens.js";
-import TimeChart from "../components/TimeChart.jsx";
+import { C, T, glass, card, label as labelStyle, sectionHeading, bodyText } from "../tokens.js";
 
 const SUBTABS = ["overview", "data", "trust-scoring", "event-detection", "forecasting", "results"];
 
@@ -20,55 +19,41 @@ const RF_RESULTS = [
   { sensor: 297697, name: "Joliet Township Hall",  mae: 0.6719, rmse: 1.5314, r2: 0.9653 },
 ];
 
-const fadeUp = {
-  initial: { opacity: 0, y: 20 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: "-40px" },
-  transition: { duration: 0.5 },
-};
-
-function Stat({ label: lbl, value, sub, gradient = C.gradientA }) {
+function Stat({ label: lbl, value, sub, accentColor }) {
+  const col = accentColor || C.accent;
   return (
-    <div style={{ ...glassCard(), position: "relative", overflow: "hidden" }}>
-      <div style={{
-        position: "absolute", top: 0, left: 0, right: 0, height: 2,
-        background: gradient,
-      }}/>
+    <div style={{ ...glass(), borderTop: `3px solid ${col}`, paddingTop: 20 }}>
       <div style={labelStyle}>{lbl}</div>
-      <div style={{
-        fontFamily: T.mono, fontWeight: 700, fontSize: 36,
-        ...gradientText(gradient),
-        lineHeight: 1, marginTop: 10, marginBottom: 4,
-      }}>{value}</div>
-      {sub && <div style={{ fontFamily: T.display, fontSize: 13, color: C.sub }}>{sub}</div>}
+      <div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 34,
+        color: col, lineHeight: 1, marginTop: 8, marginBottom: 4 }}>{value}</div>
+      {sub && <div style={{ fontFamily: T.display, fontSize: 13, color: C.muted }}>{sub}</div>}
     </div>
   );
 }
 
-function Table({ headers, rows, colored }) {
+function Table({ headers, rows }) {
   return (
-    <div style={{ overflowX: "auto", borderRadius: 12, border: `1px solid ${C.border}`,
-      background: `${C.surface}80` }}>
+    <div style={{ overflowX: "auto", borderRadius: 10, border: "1px solid rgba(0,0,0,0.08)",
+      background: "rgba(255,255,255,0.7)", backdropFilter: "blur(10px)" }}>
       <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: T.display, fontSize: 14 }}>
         <thead>
-          <tr style={{ background: C.elevated }}>
-            {headers.map((h) => (
-              <th key={h} style={{
-                padding: "12px 16px", textAlign: "left", ...labelStyle,
-                borderBottom: `1px solid ${C.border}`,
-              }}>{h}</th>
+          <tr style={{ background: "rgba(0,0,0,0.03)" }}>
+            {headers.map(h => (
+              <th key={h} style={{ padding: "11px 16px", textAlign: "left", ...labelStyle,
+                borderBottom: "1px solid rgba(0,0,0,0.07)" }}>{h}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} style={{ borderBottom: i < rows.length - 1 ? `1px solid ${C.border}` : "none" }}>
+            <tr key={i} style={{ borderBottom: i < rows.length - 1 ? "1px solid rgba(0,0,0,0.06)" : "none" }}>
               {row.map((cell, j) => (
                 <td key={j} style={{
-                  padding: "12px 16px",
+                  padding: "11px 16px",
                   color: j === 0 ? C.text : C.sub,
-                  fontFamily: j >= 1 && colored ? T.mono : T.display,
-                  fontWeight: j >= 1 && colored ? 600 : 400,
+                  fontFamily: j >= 1 ? T.mono : T.display,
+                  fontWeight: j >= 1 ? 600 : 400,
+                  fontSize: j >= 1 ? 13 : 14,
                 }}>{cell}</td>
               ))}
             </tr>
@@ -80,31 +65,25 @@ function Table({ headers, rows, colored }) {
 }
 
 function Callout({ type = "note", children }) {
-  const styles = {
-    note:    { gradient: C.gradientA, border: "#38bdf8", icon: "i" },
-    caveat:  { gradient: "linear-gradient(135deg, #fbbf24, #fb923c)", border: "#fbbf24", icon: "!" },
-    formula: { gradient: C.gradientC, border: "#34d399", icon: "f" },
-  };
-  const s = styles[type];
+  const s = {
+    note:    { color: C.accent,   bg: C.accentLight,               border: C.accentBorder,          icon: "i" },
+    caveat:  { color: "#b45309",  bg: "rgba(180,83,9,0.06)",        border: "rgba(180,83,9,0.2)",     icon: "!" },
+    formula: { color: "#16a34a",  bg: "rgba(22,163,74,0.06)",       border: "rgba(22,163,74,0.2)",    icon: "f" },
+  }[type];
   return (
     <div style={{
-      background: `${C.surface}`,
-      border: `1px solid ${s.border}20`,
-      borderLeft: `3px solid ${s.border}`,
-      borderRadius: "0 12px 12px 0",
-      padding: "16px 20px",
-      display: "flex",
-      gap: 14,
-      margin: "20px 0",
+      background: s.bg, border: `1px solid ${s.border}`,
+      borderLeft: `3px solid ${s.color}`,
+      borderRadius: "0 10px 10px 0",
+      padding: "14px 18px", display: "flex", gap: 12, margin: "18px 0",
     }}>
       <span style={{
-        width: 24, height: 24, borderRadius: 6,
-        background: `${s.border}20`,
+        width: 22, height: 22, borderRadius: 5, flexShrink: 0,
+        background: s.border, color: s.color,
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontFamily: T.mono, fontSize: 12, fontWeight: 700, color: s.border,
-        flexShrink: 0,
+        fontFamily: T.mono, fontSize: 11, fontWeight: 700,
       }}>{s.icon}</span>
-      <div style={{ ...bodyText, fontSize: 14 }}>{children}</div>
+      <div style={{ ...bodyText, fontSize: 13 }}>{children}</div>
     </div>
   );
 }
@@ -113,106 +92,98 @@ export default function Research() {
   const [subTab, setSubTab] = useState("overview");
 
   return (
-    <div style={{ background: "transparent", minHeight: "100vh", color: C.text }}>
+    <div style={{ minHeight: "100vh", color: C.text }}>
+
       {/* Header */}
-      <div style={{ padding: "56px 48px 0", maxWidth: 1100, margin: "0 auto" }}>
-        <motion.div {...fadeUp}>
-          <div style={{ marginBottom: 8 }}>
-            <span style={{ fontFamily: T.mono, fontSize: 11, fontWeight: 600,
-              ...gradientText(C.gradientB),
-              background: `${C.accent2}15`, border: `1px solid ${C.accent2}20`,
-              borderRadius: 6, padding: "4px 12px",
-              WebkitTextFillColor: C.accent2,
+      <div style={{ padding: "52px 48px 0", maxWidth: 1100, margin: "0 auto" }}>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+          <div style={{ marginBottom: 10 }}>
+            <span style={{
+              fontFamily: T.mono, fontSize: 11, fontWeight: 600,
+              color: "#6d28d9", background: "rgba(109,40,217,0.07)",
+              border: "1px solid rgba(109,40,217,0.18)",
+              borderRadius: 5, padding: "3px 10px", letterSpacing: "0.04em",
             }}>RESEARCH</span>
           </div>
-          <h1 style={{
-            fontFamily: T.display, fontWeight: 900, fontSize: 40,
-            letterSpacing: "-0.04em", marginBottom: 12,
-          }}>
-            <span style={{ color: C.text }}>Air Quality Study — </span>
-            <span style={gradientText(C.gradientB)}>November 2025</span>
+          <h1 style={{ ...sectionHeading, fontSize: 38, marginBottom: 10 }}>
+            Air Quality Study — November 2025
           </h1>
-          <p style={{ ...bodyText, maxWidth: 640, marginBottom: 40 }}>
+          <p style={{ ...bodyText, maxWidth: 620, marginBottom: 36 }}>
             Five PurpleAir sensors, one month, southwest Chicago suburbs.
-            85,014 readings. We built trust scoring, event detection, and
-            Random Forest forecasting — all methods documented below.
+            85,014 readings. Trust scoring, event detection, and Random Forest
+            forecasting — all methods documented below.
           </p>
         </motion.div>
       </div>
 
       {/* Sub-nav */}
       <div style={{
-        borderBottom: `1px solid ${C.border}60`,
-        padding: "0 48px",
-        display: "flex",
-        gap: 2,
-        maxWidth: 1100,
-        margin: "0 auto",
+        borderBottom: "1px solid rgba(0,0,0,0.07)",
+        background: "rgba(255,255,255,0.5)",
+        backdropFilter: "blur(10px)",
+        padding: "0 48px", display: "flex",
+        maxWidth: "none",
       }}>
-        {SUBTABS.map((t) => (
+        {SUBTABS.map(t => (
           <button key={t} onClick={() => setSubTab(t)} style={{
-            background: "transparent", border: "none",
-            position: "relative",
+            background: "transparent", border: "none", position: "relative",
             color: subTab === t ? C.text : C.sub,
-            padding: "13px 16px 11px",
+            padding: "12px 16px 10px",
             fontFamily: T.display, fontWeight: subTab === t ? 600 : 450, fontSize: 13,
             cursor: "pointer", textTransform: "capitalize", whiteSpace: "nowrap",
-            transition: "all 0.2s",
-          }}>
+            transition: "color 0.15s",
+          }}
+          onMouseEnter={e => { if (subTab !== t) e.currentTarget.style.color = C.text; }}
+          onMouseLeave={e => { if (subTab !== t) e.currentTarget.style.color = C.sub; }}
+          >
             {t.replace("-", " ")}
             {subTab === t && (
-              <motion.div
-                layoutId="research-tab-underline"
-                style={{
-                  position: "absolute", bottom: 0, left: 16, right: 16,
-                  height: 2, borderRadius: 1,
-                  background: C.gradientB,
-                }}
-                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              <motion.div layoutId="research-tab"
+                style={{ position: "absolute", bottom: 0, left: 16, right: 16,
+                  height: 2, borderRadius: "2px 2px 0 0", background: "#6d28d9" }}
+                transition={{ type: "spring", stiffness: 400, damping: 32 }}
               />
             )}
           </button>
         ))}
       </div>
 
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "48px 48px 96px" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "44px 48px 88px" }}>
 
-        {/* OVERVIEW */}
         {subTab === "overview" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 48 }}>
-              <Stat label="Total readings"    value="85,014"  sub="5 sensors · Nov 2025"         gradient={C.gradientA} />
-              <Stat label="Best MAE"          value="0.51"    sub="ug/m3 — Lewis University"  gradient={C.gradientC} />
-              <Stat label="Best R2"           value="0.98"    sub="Lewis University sensor"   gradient={C.gradientC} />
-              <Stat label="Avg coverage"      value="97.5%"   sub="Excl. sensor 290694"       gradient={C.gradientWarm} />
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 44 }}>
+              <Stat label="Total readings" value="85,014" sub="5 sensors · Nov 2025" />
+              <Stat label="Best MAE"       value="0.51"   sub="µg/m³ — Lewis University" accentColor="#16a34a" />
+              <Stat label="Best R²"        value="0.98"   sub="Lewis University sensor"  accentColor="#16a34a" />
+              <Stat label="Avg coverage"   value="97.5%"  sub="Excl. sensor 290694"      accentColor="#b45309" />
             </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 48 }}>
-              <div style={glassCard()}>
-                <h3 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18,
-                  letterSpacing: "-0.02em", margin: "0 0 14px" }}>Study design</h3>
-                <ul style={{ ...bodyText, fontSize: 15, paddingLeft: 20 }}>
-                  <li style={{ marginBottom: 8 }}>5 PurpleAir-style dual-channel sensors</li>
-                  <li style={{ marginBottom: 8 }}>November 1-29, 2025 (29 days)</li>
-                  <li style={{ marginBottom: 8 }}>2-minute measurement intervals</li>
-                  <li style={{ marginBottom: 8 }}>Romeoville, Joliet, Lockport area (SW Chicago)</li>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 44 }}>
+              <div style={glass()}>
+                <h3 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17,
+                  letterSpacing: "-0.02em", margin: "0 0 12px", color: C.text }}>Study design</h3>
+                <ul style={{ ...bodyText, fontSize: 14, paddingLeft: 18 }}>
+                  <li style={{ marginBottom: 7 }}>5 PurpleAir-style dual-channel sensors</li>
+                  <li style={{ marginBottom: 7 }}>November 1–29, 2025 (29 days)</li>
+                  <li style={{ marginBottom: 7 }}>2-minute measurement intervals</li>
+                  <li style={{ marginBottom: 7 }}>Romeoville, Joliet, Lockport area (SW Chicago)</li>
                   <li>Source: <a href="https://github.com/DrKoz/ACS_AQ" target="_blank" rel="noopener noreferrer"
-                    style={{ color: C.accent }}>github.com/DrKoz/ACS_AQ</a></li>
+                    style={{ color: C.accent, textDecoration: "none" }}>github.com/DrKoz/ACS_AQ</a></li>
                 </ul>
               </div>
-              <div style={glassCard()}>
-                <h3 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18,
-                  letterSpacing: "-0.02em", margin: "0 0 14px" }}>Three ML components</h3>
+              <div style={glass()}>
+                <h3 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17,
+                  letterSpacing: "-0.02em", margin: "0 0 12px", color: C.text }}>Three ML components</h3>
                 {[
-                  ["Dual-sensor trust scoring", "Quantifies A/B channel agreement per reading (0-100)"],
+                  ["Dual-sensor trust scoring", "Quantifies A/B channel agreement per reading (0–100)"],
                   ["Rule-based event detection", "Smoke spikes, rain washout, sensor failure — no labels needed"],
                   ["Random Forest forecasting",  "t+1 prediction, autoregressive rollout, tree bootstrap CI"],
                 ].map(([title, desc]) => (
-                  <div key={title} style={{ display: "flex", gap: 12, marginBottom: 14 }}>
-                    <span style={{ color: C.accent2, marginTop: 2, flexShrink: 0 }}>&#9656;</span>
+                  <div key={title} style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+                    <span style={{ color: "#6d28d9", marginTop: 1, flexShrink: 0 }}>&#9656;</span>
                     <div>
                       <div style={{ fontFamily: T.display, fontWeight: 600, fontSize: 14, color: C.text }}>{title}</div>
-                      <div style={{ fontFamily: T.display, fontSize: 13, color: C.sub, marginTop: 2 }}>{desc}</div>
+                      <div style={{ fontFamily: T.display, fontSize: 13, color: C.sub, marginTop: 1 }}>{desc}</div>
                     </div>
                   </div>
                 ))}
@@ -221,193 +192,124 @@ export default function Research() {
           </motion.div>
         )}
 
-        {/* THE DATA */}
         {subTab === "data" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <h2 style={{ ...sectionHeading, fontSize: 26, marginBottom: 8 }}>The Dataset</h2>
-            <p style={{ ...bodyText, marginBottom: 32, maxWidth: 620 }}>
+            <h2 style={{ ...sectionHeading, fontSize: 24, marginBottom: 6 }}>The Dataset</h2>
+            <p style={{ ...bodyText, marginBottom: 28, maxWidth: 580 }}>
               Dr. Kozminski provided raw CSV exports from five outdoor PurpleAir sensors.
-              Each row is a 2-minute average with dual-channel PM2.5 (channels A and B),
-              temperature, and relative humidity.
+              Each row is a 2-minute average with dual-channel PM2.5, temperature, and relative humidity.
             </p>
-            <Table
-              headers={["Sensor ID", "Location", "Readings", "Coverage", "Notes"]}
-              rows={SENSOR_TABLE.map((r) => [
-                r.id, r.name,
-                r.readings.toLocaleString(),
-                r.coverage,
-                r.notes || "—",
-              ])}
-            />
+            <Table headers={["Sensor ID","Location","Readings","Coverage","Notes"]}
+              rows={SENSOR_TABLE.map(r => [r.id, r.name, r.readings.toLocaleString(), r.coverage, r.notes || "—"])} />
             <Callout type="note">
-              Sensor 290694 has only 17.9% data coverage due to connectivity issues during the study
-              period. It is included in descriptive statistics but excluded from all forecasting models.
+              Sensor 290694 has only 17.9% data coverage due to connectivity issues. Included in descriptive
+              statistics but excluded from all forecasting models.
             </Callout>
-            <h3 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 20,
-              letterSpacing: "-0.02em", margin: "40px 0 12px" }}>Cross-sensor divergence</h3>
-            <p style={{ ...bodyText, marginBottom: 16 }}>
+            <h3 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18,
+              letterSpacing: "-0.02em", margin: "36px 0 10px", color: C.text }}>Cross-sensor divergence</h3>
+            <p style={{ ...bodyText, marginBottom: 14 }}>
               Arun Muthukumar's EDA identified two major inter-sensor divergence clusters.
-              Hourly inter-sensor range = max(sensors) - min(sensors) at each timestamp.
             </p>
-            {[
-              ["Nov 27", "~41 ug/m3", "Spatially concentrated smoke spike"],
-              ["Nov 29", "~27 ug/m3", "Moderate smoke event, confirmed by event detection"],
-            ].map(([date, peak, desc]) => (
+            {[["Nov 27","~41 µg/m³","Spatially concentrated smoke spike"],
+              ["Nov 29","~27 µg/m³","Moderate smoke event, confirmed by event detection"]].map(([date,peak,desc]) => (
               <div key={date} style={{
-                ...glassCard({ padding: "16px 24px", marginBottom: 10 }),
-                display: "flex", alignItems: "center", gap: 20,
-                borderLeft: `3px solid #fb923c`,
+                ...glass({ padding: "14px 20px", marginBottom: 8 }),
+                display: "flex", alignItems: "center", gap: 18,
+                borderLeft: `3px solid #c2410c`,
               }}>
-                <div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 14, color: "#fb923c", minWidth: 60 }}>{date}</div>
+                <div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 13, color: "#c2410c", minWidth: 52 }}>{date}</div>
                 <div>
-                  <div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 18, color: C.text }}>{peak} range</div>
-                  <div style={{ fontFamily: T.display, fontSize: 13, color: C.sub, marginTop: 2 }}>{desc}</div>
+                  <div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 16, color: C.text }}>{peak} range</div>
+                  <div style={{ fontFamily: T.display, fontSize: 13, color: C.muted, marginTop: 1 }}>{desc}</div>
                 </div>
               </div>
             ))}
             <Callout type="caveat">
-              Cross-sensor divergence identifies <em>where</em> PM2.5 differs across the network
-              at a given time, but cannot attribute the cause without additional meteorological data.
+              Cross-sensor divergence identifies <em>where</em> PM2.5 differs across the network,
+              but cannot attribute the cause without additional meteorological data.
             </Callout>
           </motion.div>
         )}
 
-        {/* TRUST SCORING */}
         {subTab === "trust-scoring" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <h2 style={{ ...sectionHeading, fontSize: 26, marginBottom: 12 }}>Dual-Sensor Trust Scoring</h2>
-            <p style={{ ...bodyText, marginBottom: 24, maxWidth: 640 }}>
-              PurpleAir sensors contain two independent laser particle counters (channels A and B).
-              Normally they agree closely. Large disagreement signals hardware issues or interference.
-              We quantify this as a trust score per 2-minute reading.
+            <h2 style={{ ...sectionHeading, fontSize: 24, marginBottom: 10 }}>Dual-Sensor Trust Scoring</h2>
+            <p style={{ ...bodyText, marginBottom: 20, maxWidth: 600 }}>
+              PurpleAir sensors contain two independent laser particle counters (A and B). Large
+              disagreement signals hardware issues. We quantify this as a trust score per 2-minute reading.
             </p>
             <Callout type="formula">
-              <strong>T = 100 x e<sup>-3 x |A-B| / mean(A, B)</sup></strong><br/>
-              where A = Channel A PM2.5, B = Channel B PM2.5.<br/>
-              T = 100 when A = B. T &lt; 55 is "LOW" trust.
-              T drops exponentially as divergence grows.
+              <strong>T = 100 × e<sup>−3 × |A−B| / mean(A,B)</sup></strong><br/>
+              T = 100 when A = B exactly. T &lt; 55 is flagged as "LOW" trust.
             </Callout>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 32 }}>
-              {[
-                ["HIGH", "> 80", "#34d399", C.gradientC],
-                ["MED", "55 - 80", "#fbbf24", "linear-gradient(135deg, #fbbf24, #fb923c)"],
-                ["LOW", "< 55", "#f87171", "linear-gradient(135deg, #f87171, #fb7185)"],
-              ].map(([l,r,c,gradient]) => (
-                <div key={l} style={{
-                  ...glassCard({ textAlign: "center" }),
-                  position: "relative", overflow: "hidden",
-                }}>
-                  <div style={{
-                    position: "absolute", top: 0, left: 0, right: 0, height: 3,
-                    background: gradient,
-                  }}/>
-                  <div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 22, color: c, marginTop: 4 }}>{l}</div>
-                  <div style={{ fontFamily: T.display, fontSize: 14, color: C.sub, marginTop: 4 }}>Score {r}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginBottom: 28 }}>
+              {[["HIGH","> 80","#16a34a"],["MED","55–80","#b45309"],["LOW","< 55","#b91c1c"]].map(([l,r,c]) => (
+                <div key={l} style={{ ...glass({ textAlign: "center" }), borderTop: `3px solid ${c}`, paddingTop: 18 }}>
+                  <div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 20, color: c }}>{l}</div>
+                  <div style={{ fontFamily: T.display, fontSize: 13, color: C.muted, marginTop: 3 }}>Score {r}</div>
                 </div>
               ))}
             </div>
-            <h3 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 20, letterSpacing: "-0.02em", marginBottom: 12 }}>
-              Results across sensors
-            </h3>
-            <Table
-              headers={["Sensor", "Mean Trust", "Interpretation"]}
-              rows={[
-                [230019, "~82%", "Good — typical hardware behavior"],
-                [249443, "~78%", "Good — occasional channel divergence"],
-                [249445, "~84%", "Excellent — very consistent channels"],
-                [297697, "~80%", "Good"],
-              ].map(([id, trust, note]) => [id, trust, note])}
-            />
+            <Table headers={["Sensor","Mean Trust","Interpretation"]}
+              rows={[[230019,"~82%","Good — typical hardware behavior"],[249443,"~78%","Good — occasional divergence"],
+                [249445,"~84%","Excellent — very consistent"],[297697,"~80%","Good"]].map(r => r)} />
             <Callout type="caveat">
-              The trust score cannot detect simultaneous drift on both channels. If A and B both
-              shift equally due to the same contamination, T remains high despite inaccurate readings.
-              This is an inherent limitation of dual-channel systems.
+              The trust score cannot detect simultaneous drift on both channels. If A and B both shift
+              equally, T remains high despite inaccurate readings — an inherent limitation.
             </Callout>
           </motion.div>
         )}
 
-        {/* EVENT DETECTION */}
         {subTab === "event-detection" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <h2 style={{ ...sectionHeading, fontSize: 26, marginBottom: 12 }}>Rule-Based Event Detection</h2>
-            <p style={{ ...bodyText, marginBottom: 32, maxWidth: 640 }}>
-              We detect three types of environmental events using threshold rules — no labeled training
-              data required. Deduplication enforces one event per type per sensor per 2-hour window.
+            <h2 style={{ ...sectionHeading, fontSize: 24, marginBottom: 10 }}>Rule-Based Event Detection</h2>
+            <p style={{ ...bodyText, marginBottom: 28, maxWidth: 600 }}>
+              Three event types detected via threshold rules — no labeled training data required.
+              One event per type per sensor per 2-hour window.
             </p>
             {[
-              {
-                type: "smoke_spike",
-                color: "#fb923c",
-                gradient: C.gradientWarm,
-                title: "Smoke Spike",
-                rules: [
-                  "PM2.5 rises >= 50% within any 30-minute window",
-                  "AND current PM2.5 > 35 ug/m3",
-                ],
-                notes: "Captures wildfire plumes and local combustion events.",
-              },
-              {
-                type: "rain_washout",
-                color: "#38bdf8",
-                gradient: C.gradientA,
-                title: "Rain Washout",
-                rules: [
-                  "PM2.5 drops >= 35% within a 1-hour window",
-                  "AND baseline PM2.5 > 5 ug/m3",
-                ],
-                notes: "Precipitation scavenges particles. No precipitation sensor — inferred from PM2.5 pattern.",
-              },
-              {
-                type: "sensor_failure",
-                color: "#fbbf24",
-                gradient: "linear-gradient(135deg, #fbbf24, #fb923c)",
-                title: "Sensor Failure",
-                rules: [
-                  "Trust score < 40 for 3+ consecutive readings (~6 minutes)",
-                  "AND A/B channel divergence > 40%",
-                ],
-                notes: "Indicates hardware malfunction or extreme contamination.",
-              },
+              { color: "#c2410c", title: "Smoke Spike",
+                rules: ["PM2.5 rises ≥ 50% within any 30-minute window", "AND current PM2.5 > 35 µg/m³"],
+                notes: "Captures wildfire plumes and local combustion events." },
+              { color: "#1d4ed8", title: "Rain Washout",
+                rules: ["PM2.5 drops ≥ 35% within a 1-hour window", "AND baseline PM2.5 > 5 µg/m³"],
+                notes: "Precipitation scavenges particles. Inferred from PM2.5 pattern only." },
+              { color: "#b45309", title: "Sensor Failure",
+                rules: ["Trust score < 40 for 3+ consecutive readings (~6 minutes)", "AND A/B divergence > 40%"],
+                notes: "Indicates hardware malfunction or extreme contamination." },
             ].map(({ color, title, rules, notes }) => (
-              <div key={title} style={{
-                ...glassCard({ marginBottom: 16, borderLeft: `3px solid ${color}` }),
-              }}>
-                <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17, color, marginBottom: 10 }}>{title}</div>
-                {rules.map((r) => (
-                  <div key={r} style={{ display: "flex", gap: 10, marginBottom: 6 }}>
-                    <span style={{ color, flexShrink: 0 }}>&#8594;</span>
+              <div key={title} style={{ ...glass({ marginBottom: 12, borderLeft: `3px solid ${color}` }) }}>
+                <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16, color, marginBottom: 8 }}>{title}</div>
+                {rules.map(r => (
+                  <div key={r} style={{ display: "flex", gap: 8, marginBottom: 5 }}>
+                    <span style={{ color, flexShrink: 0 }}>→</span>
                     <span style={{ fontFamily: T.mono, fontSize: 13, color: C.text }}>{r}</span>
                   </div>
                 ))}
-                <div style={{ fontFamily: T.display, fontSize: 13, color: C.sub, marginTop: 10 }}>{notes}</div>
+                <div style={{ fontFamily: T.display, fontSize: 13, color: C.muted, marginTop: 8 }}>{notes}</div>
               </div>
             ))}
             <Callout type="caveat">
-              No ground-truth event labels exist for this dataset. Precision and recall cannot be
-              computed. Events should be treated as candidate anomalies, not confirmed detections.
+              No ground-truth event labels exist. Events should be treated as candidate anomalies,
+              not confirmed detections. Precision and recall cannot be computed.
             </Callout>
           </motion.div>
         )}
 
-        {/* FORECASTING */}
         {subTab === "forecasting" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <h2 style={{ ...sectionHeading, fontSize: 26, marginBottom: 12 }}>Random Forest Forecasting</h2>
-            <p style={{ ...bodyText, marginBottom: 24, maxWidth: 640 }}>
-              We trained a Random Forest regressor to predict PM2.5 one step ahead (t+1, 2 minutes).
-              The 6-hour view is produced by autoregressively feeding each prediction into the next.
+            <h2 style={{ ...sectionHeading, fontSize: 24, marginBottom: 10 }}>Random Forest Forecasting</h2>
+            <p style={{ ...bodyText, marginBottom: 22, maxWidth: 600 }}>
+              RandomForestRegressor predicts PM2.5 one step ahead (t+1, 2 minutes). The 6-hour view
+              is produced by feeding each prediction back as input.
             </p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 32 }}>
-              <div style={glassCard()}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 28 }}>
+              <div style={glass()}>
                 <div style={labelStyle}>Model configuration</div>
-                <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
-                  {[
-                    ["Algorithm",    "RandomForestRegressor"],
-                    ["n_estimators", "100 trees"],
-                    ["max_depth",    "12"],
-                    ["random_state", "42 (reproducible)"],
-                    ["Train/test",   "80/20, temporal split — NO shuffling"],
-                  ].map(([k, v]) => (
+                <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 9 }}>
+                  {[["Algorithm","RandomForestRegressor"],["n_estimators","100 trees"],
+                    ["max_depth","12"],["random_state","42 (reproducible)"],
+                    ["Train/test","80/20 temporal split — NO shuffling"]].map(([k,v]) => (
                     <div key={k} style={{ display: "flex", justifyContent: "space-between" }}>
                       <span style={labelStyle}>{k}</span>
                       <span style={{ fontFamily: T.mono, fontSize: 13, color: C.text }}>{v}</span>
@@ -415,121 +317,107 @@ export default function Research() {
                   ))}
                 </div>
               </div>
-              <div style={glassCard()}>
+              <div style={glass()}>
                 <div style={labelStyle}>Features (15 total)</div>
-                <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
-                  {[
-                    "12 PM2.5 lag features (t-1 to t-12, covering past 24 min)",
+                <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 7 }}>
+                  {["12 PM2.5 lag features (t−1 to t−12, past 24 min)",
                     "Average temperature across channels",
                     "Average relative humidity",
-                    "Hour of day (0-23)",
-                    "Day of week (0-6)",
-                  ].map((f) => (
-                    <div key={f} style={{ display: "flex", gap: 10 }}>
-                      <span style={{ color: C.accent2, flexShrink: 0 }}>&#9656;</span>
-                      <span style={{ fontFamily: T.display, fontSize: 14, color: C.sub }}>{f}</span>
+                    "Hour of day (0–23)",
+                    "Day of week (0–6)"].map(f => (
+                    <div key={f} style={{ display: "flex", gap: 8 }}>
+                      <span style={{ color: "#6d28d9", flexShrink: 0 }}>&#9656;</span>
+                      <span style={{ fontFamily: T.display, fontSize: 13, color: C.sub }}>{f}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-
-            <h3 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 20,
-              letterSpacing: "-0.02em", margin: "0 0 12px" }}>Uncertainty quantification</h3>
-            <p style={{ ...bodyText, marginBottom: 16, maxWidth: 580 }}>
-              Confidence intervals are estimated from the 10th and 90th percentile of predictions
-              across the 100 trees (tree bootstrap). This is a conservative but honest estimate —
-              interval width reflects model disagreement, not calibrated probability.
-            </p>
             <Callout type="note">
-              The model is a <strong>single-step (t+1) predictor</strong>. The 6-hour output is an
-              autoregressive rollout where each predicted value is fed back as input to predict the
-              next step. Uncertainty grows with horizon because errors accumulate.
+              This is a <strong>single-step (t+1) predictor</strong>. Uncertainty uses 10th–90th percentile
+              across 100 trees. Autoregressive rollout means errors accumulate over the 6-hour horizon.
             </Callout>
-
-            <h3 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 20,
-              letterSpacing: "-0.02em", margin: "32px 0 12px" }}>SARIMA baseline</h3>
-            <p style={{ ...bodyText, marginBottom: 12, maxWidth: 580 }}>
-              SARIMA(1,1,1)(1,0,1,24) was fit as a classical time series baseline. It captures
-              daily seasonality (24 x 2-min = 48-min periods, scaled to daily patterns).
+            <h3 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17,
+              letterSpacing: "-0.02em", margin: "28px 0 10px", color: C.text }}>SARIMA baseline</h3>
+            <p style={{ ...bodyText, marginBottom: 10, maxWidth: 540 }}>
+              SARIMA(1,1,1)(1,0,1,24) fit as a classical baseline. Captures daily seasonality.
             </p>
             <Callout type="caveat">
-              The Random Forest outperforms SARIMA substantially on all four sensors. This is expected
-              given SARIMA's linear assumptions and the nonlinear, multivariate nature of PM2.5.
+              Random Forest outperforms SARIMA on all four sensors — expected given SARIMA's
+              linear assumptions vs. the nonlinear, multivariate nature of PM2.5.
             </Callout>
           </motion.div>
         )}
 
-        {/* RESULTS */}
         {subTab === "results" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <h2 style={{ ...sectionHeading, fontSize: 26, marginBottom: 8 }}>Model Results</h2>
-            <p style={{ ...bodyText, marginBottom: 32, maxWidth: 560 }}>
-              All metrics computed on a held-out 20% temporal test set. No shuffling.
+            <h2 style={{ ...sectionHeading, fontSize: 24, marginBottom: 6 }}>Model Results</h2>
+            <p style={{ ...bodyText, marginBottom: 28, maxWidth: 520 }}>
+              All metrics on a held-out 20% temporal test set. No shuffling.
             </p>
-            <h3 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18, marginBottom: 14 }}>
+            <h3 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16, marginBottom: 12, color: C.text }}>
               Random Forest — Test set performance
             </h3>
-            <div style={{ overflowX: "auto", borderRadius: 12, border: `1px solid ${C.border}`,
-              marginBottom: 32, background: `${C.surface}80` }}>
+            <div style={{ overflowX: "auto", borderRadius: 10,
+              border: "1px solid rgba(0,0,0,0.08)", marginBottom: 28,
+              background: "rgba(255,255,255,0.7)", backdropFilter: "blur(10px)" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ background: C.elevated }}>
-                    {["Sensor", "Location", "MAE (ug/m3)", "RMSE (ug/m3)", "R2"].map((h) => (
-                      <th key={h} style={{ padding: "12px 16px", textAlign: "left", ...labelStyle, borderBottom: `1px solid ${C.border}` }}>{h}</th>
+                  <tr style={{ background: "rgba(0,0,0,0.03)" }}>
+                    {["Sensor","Location","MAE (µg/m³)","RMSE (µg/m³)","R²"].map(h => (
+                      <th key={h} style={{ padding: "11px 16px", textAlign: "left", ...labelStyle,
+                        borderBottom: "1px solid rgba(0,0,0,0.07)" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {RF_RESULTS.map((r, i) => (
-                    <tr key={r.sensor} style={{ borderBottom: i < RF_RESULTS.length - 1 ? `1px solid ${C.border}` : "none" }}>
-                      <td style={{ padding: "13px 16px", fontFamily: T.mono, fontSize: 14, color: C.sub }}>{r.sensor}</td>
-                      <td style={{ padding: "13px 16px", fontFamily: T.display, fontSize: 14, color: C.text }}>{r.name}</td>
-                      <td style={{ padding: "13px 16px", fontFamily: T.mono, fontWeight: 700, fontSize: 16,
-                        color: r.mae < 0.6 ? "#34d399" : r.mae < 1.0 ? "#fbbf24" : "#fb923c" }}>{r.mae.toFixed(4)}</td>
-                      <td style={{ padding: "13px 16px", fontFamily: T.mono, fontWeight: 700, fontSize: 16, color: C.sub }}>{r.rmse.toFixed(4)}</td>
-                      <td style={{ padding: "13px 16px", fontFamily: T.mono, fontWeight: 700, fontSize: 16,
-                        color: r.r2 > 0.95 ? "#34d399" : r.r2 > 0.85 ? "#fbbf24" : "#fb923c" }}>{r.r2.toFixed(4)}</td>
+                    <tr key={r.sensor} style={{ borderBottom: i < RF_RESULTS.length-1 ? "1px solid rgba(0,0,0,0.06)" : "none" }}>
+                      <td style={{ padding:"11px 16px", fontFamily:T.mono, fontSize:13, color:C.muted }}>{r.sensor}</td>
+                      <td style={{ padding:"11px 16px", fontFamily:T.display, fontSize:14, color:C.text }}>{r.name}</td>
+                      <td style={{ padding:"11px 16px", fontFamily:T.mono, fontWeight:700, fontSize:15,
+                        color: r.mae<0.6?"#16a34a":r.mae<1.0?"#b45309":"#b91c1c" }}>{r.mae.toFixed(4)}</td>
+                      <td style={{ padding:"11px 16px", fontFamily:T.mono, fontSize:14, color:C.sub }}>{r.rmse.toFixed(4)}</td>
+                      <td style={{ padding:"11px 16px", fontFamily:T.mono, fontWeight:700, fontSize:15,
+                        color: r.r2>0.95?"#16a34a":r.r2>0.85?"#b45309":"#b91c1c" }}>{r.r2.toFixed(4)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-
-            <h3 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18, marginBottom: 14 }}>
+            <h3 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16, marginBottom: 12, color: C.text }}>
               RF vs SARIMA comparison
             </h3>
-            <div style={{ overflowX: "auto", borderRadius: 12, border: `1px solid ${C.border}`,
-              marginBottom: 32, background: `${C.surface}80` }}>
+            <div style={{ overflowX: "auto", borderRadius: 10,
+              border: "1px solid rgba(0,0,0,0.08)", marginBottom: 28,
+              background: "rgba(255,255,255,0.7)", backdropFilter: "blur(10px)" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ background: C.elevated }}>
-                    {["Sensor", "RF MAE", "SARIMA MAE", "RF R2", "SARIMA R2", "Winner"].map((h) => (
-                      <th key={h} style={{ padding: "12px 16px", textAlign: "left", ...labelStyle, borderBottom: `1px solid ${C.border}` }}>{h}</th>
+                  <tr style={{ background: "rgba(0,0,0,0.03)" }}>
+                    {["Sensor","RF MAE","SARIMA MAE","RF R²","SARIMA R²","Winner"].map(h => (
+                      <th key={h} style={{ padding:"11px 16px", textAlign:"left", ...labelStyle,
+                        borderBottom:"1px solid rgba(0,0,0,0.07)" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {RF_RESULTS.map((r, i) => (
-                    <tr key={r.sensor} style={{ borderBottom: i < RF_RESULTS.length - 1 ? `1px solid ${C.border}` : "none" }}>
-                      <td style={{ padding: "13px 16px", fontFamily: T.display, fontSize: 14, color: C.text }}>{r.name}</td>
-                      <td style={{ padding: "13px 16px", fontFamily: T.mono, fontSize: 14, color: "#34d399" }}>{r.mae.toFixed(4)}</td>
-                      <td style={{ padding: "13px 16px", fontFamily: T.mono, fontSize: 14, color: C.sub }}>running...</td>
-                      <td style={{ padding: "13px 16px", fontFamily: T.mono, fontSize: 14, color: "#34d399" }}>{r.r2.toFixed(4)}</td>
-                      <td style={{ padding: "13px 16px", fontFamily: T.mono, fontSize: 14, color: C.sub }}>running...</td>
-                      <td style={{ padding: "13px 16px", fontFamily: T.mono, fontSize: 13,
-                        color: "#34d399" }}>RF</td>
+                    <tr key={r.sensor} style={{ borderBottom: i<RF_RESULTS.length-1?"1px solid rgba(0,0,0,0.06)":"none" }}>
+                      <td style={{ padding:"11px 16px", fontFamily:T.display, fontSize:14, color:C.text }}>{r.name}</td>
+                      <td style={{ padding:"11px 16px", fontFamily:T.mono, fontSize:13, color:"#16a34a" }}>{r.mae.toFixed(4)}</td>
+                      <td style={{ padding:"11px 16px", fontFamily:T.mono, fontSize:13, color:C.muted }}>running...</td>
+                      <td style={{ padding:"11px 16px", fontFamily:T.mono, fontSize:13, color:"#16a34a" }}>{r.r2.toFixed(4)}</td>
+                      <td style={{ padding:"11px 16px", fontFamily:T.mono, fontSize:13, color:C.muted }}>running...</td>
+                      <td style={{ padding:"11px 16px", fontFamily:T.mono, fontSize:13, color:"#16a34a", fontWeight:700 }}>RF</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-
             <Callout type="caveat">
-              <strong>Methodological transparency:</strong> The forecast model predicts t+1 (2 min ahead),
-              not multi-hour. Event detection has no ground-truth validation — precision/recall cannot
-              be computed. The trust score cannot detect simultaneous channel drift. These are real
-              constraints, not limitations to hide. November 2025, one location — generalizability is limited.
+              <strong>Methodological transparency:</strong> Forecast is t+1 only, not multi-hour.
+              Event detection has no ground-truth validation. Trust score cannot detect simultaneous
+              channel drift. November 2025, one region — generalizability is limited.
             </Callout>
           </motion.div>
         )}

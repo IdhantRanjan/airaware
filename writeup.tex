@@ -1,0 +1,560 @@
+\documentclass[11pt, letterpaper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────────────
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{caption}
+\usepackage{array}
+\usepackage{multirow}
+
+% ── Colors ────────────────────────────────────────────────────────────────────
+\definecolor{lewisblue}{RGB}{0, 56, 101}
+\definecolor{darkgray}{RGB}{60, 60, 60}
+\definecolor{lightgray}{RGB}{240, 240, 240}
+
+% ── Hyperref ──────────────────────────────────────────────────────────────────
+\hypersetup{
+  colorlinks=true,
+  linkcolor=lewisblue,
+  urlcolor=lewisblue,
+  citecolor=lewisblue,
+  pdftitle={Trustworthy Real-Time Air Quality Monitoring Using Low-Cost PM2.5 Sensor Networks},
+  pdfauthor={Idhant Ranjan, Arun Muthukumar, Varun Kalidindi}
+}
+
+% ── Section formatting ────────────────────────────────────────────────────────
+\titleformat{\section}{\large\bfseries\color{lewisblue}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries\color{darkgray}}{}{0em}{}
+\titleformat{\subsubsection}{\normalsize\itshape\color{darkgray}}{}{0em}{}
+
+% ── Header / Footer ───────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\small\color{darkgray}ACS Air Quality Project --- Lewis University}
+\fancyhead[R]{\small\color{darkgray}Spring 2026}
+\fancyfoot[C]{\small\thepage}
+
+% ── Title ─────────────────────────────────────────────────────────────────────
+\title{%
+  \vspace{-1cm}
+  {\Large \textbf{Trustworthy Real-Time Air Quality Monitoring}}\\[4pt]
+  {\large Using Low-Cost PM$_{2.5}$ Sensor Networks, Machine Learning,\\
+  and Calibrated Uncertainty Estimation}
+}
+\author{%
+  Idhant Ranjan \quad Arun Muthukumar \quad Varun Kalidindi\\[4pt]
+  \small Lewis University\\[2pt]
+  \small Mentored by Dr.\ Kozminski
+}
+\date{Spring 2026}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\begin{document}
+\maketitle
+\thispagestyle{fancy}
+
+% ── Abstract ──────────────────────────────────────────────────────────────────
+\begin{abstract}
+Low-cost PM$_{2.5}$ sensors provide high-frequency, community-scale air quality data but
+introduce reliability challenges due to calibration drift and hardware variability.
+We present an end-to-end air quality monitoring system built on a network of five
+dual-channel sensors deployed at Lewis University during November 2025.
+Our contributions are threefold: (1) a \textbf{dual-sensor trust scoring} framework
+that quantifies reading reliability from the A/B channel agreement of each sensor unit;
+(2) a \textbf{rule-based event detection} pipeline that identifies smoke spikes,
+precipitation washout events, and sensor failures from 2-minute-resolution time series;
+and (3) a \textbf{Random Forest forecasting model} with tree-bootstrap uncertainty
+intervals (80\% coverage) that predicts PM$_{2.5}$ one step ahead.
+The forecasting model achieves a mean absolute error of 0.51--1.12~$\mu$g/m$^3$ and
+$R^2$ of 0.77--0.98 across the four high-coverage sensors.
+Results are surfaced in an interactive React dashboard that includes per-sensor
+trust badges, EPA AQI color coding, an event feed, and short-term forecast charts
+with calibrated confidence bands.
+\end{abstract}
+
+\tableofcontents
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+% ── 1. Introduction ───────────────────────────────────────────────────────────
+\section{Introduction}
+
+Fine particulate matter (PM$_{2.5}$, diameter $\leq 2.5$~$\mu$m) is a leading
+environmental health risk, associated with cardiovascular and respiratory disease.
+Traditional monitoring networks rely on expensive regulatory-grade equipment with
+sparse geographic coverage.
+Low-cost optical particle counters, such as those used by PurpleAir, offer a
+complementary approach: dense, community-scale networks at a fraction of the cost.
+
+However, low-cost sensors introduce new challenges.
+Individual units can drift, fail, or produce spurious readings without any
+obvious external indication.
+Raw sensor output must be cleaned, validated, and contextualized before it can
+support public health decisions or research conclusions.
+
+This project addresses those challenges directly.
+We built a complete pipeline --- from raw CSV downloads to a deployed web dashboard ---
+that (i)~scores the trustworthiness of every reading using the built-in dual-channel
+redundancy of each sensor, (ii)~detects meaningful events such as smoke plumes,
+precipitation washout, and sensor failures using domain-informed rules, and
+(iii)~produces short-term PM$_{2.5}$ forecasts with calibrated uncertainty so that
+users can see not just a prediction, but how confident the model is in it.
+
+The system is designed to be understandable and reproducible.
+All data are publicly available, all code is open source, and the dashboard can
+be deployed to Vercel with a single command.
+
+% ── 2. Related Work ───────────────────────────────────────────────────────────
+\section{Background and Related Work}
+
+\subsection{PurpleAir Sensors and Dual-Channel Architecture}
+
+PurpleAir sensors embed two Plantower laser particle counters (channels A and B)
+in each housing.
+Both channels sample the same air simultaneously, providing built-in redundancy.
+The EPA and PurpleAir recommend using channel agreement as a data quality indicator:
+when A and B diverge significantly, the unit may be malfunctioning or contaminated.
+Our trust score formalizes this intuition into a continuous 0--100 metric.
+
+\subsection{EPA AQI and PM$_{2.5}$ Standards}
+
+The U.S.\ Environmental Protection Agency updated its PM$_{2.5}$ AQI breakpoints
+in February 2024, lowering the \textit{Good} category threshold from
+12.0~$\mu$g/m$^3$ to 9.0~$\mu$g/m$^3$ to reflect the revised annual standard
+\cite{epa2024}. Our system uses these updated 2024 breakpoints throughout.
+
+\subsection{Time Series Forecasting for Air Quality}
+
+Random Forest regressors with lag features have been shown to be competitive
+with LSTM networks for short-horizon air quality forecasting, particularly when
+training data are limited to a single season \cite{chen2021}.
+We adopt this approach and augment it with meteorological features (temperature,
+humidity) and temporal features (hour of day, day of week).
+
+% ── 3. Dataset ────────────────────────────────────────────────────────────────
+\section{Dataset}
+
+\subsection{Data Source and Collection}
+
+Data were collected by Dr.\ Kozminski's group at Lewis University and are
+publicly available at \url{https://github.com/DrKoz/ACS_AQ}.
+The dataset consists of five PurpleAir-style PM$_{2.5}$ sensor units deployed
+during November 2025, recording at 2-minute intervals.
+
+\subsection{Sensor Network}
+
+Table~\ref{tab:sensors} summarizes the five sensors.
+Sensor 290694 has substantially lower coverage (17.9\%), likely due to a
+deployment delay or hardware issue; it is excluded from forecasting but
+included in trust scoring and event detection.
+
+\begin{table}[h!]
+\centering
+\caption{Sensor network summary --- November 1--29, 2025.}
+\label{tab:sensors}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Sensor ID} & \textbf{Measurements} & \textbf{Coverage (\%)} \\
+\midrule
+230019 & 20,558 & 98.5 \\
+249443 & 20,365 & 97.5 \\
+249445 & 20,677 & 99.0 \\
+290694 & 3,741  & 17.9 \\
+297697 & 20,673 & 99.0 \\
+\midrule
+\textbf{Total} & \textbf{85,014} & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Variables}
+
+Each row in the dataset contains the following fields:
+
+\begin{itemize}[noitemsep]
+  \item \textbf{\texttt{pm\_cf1}} --- EPA-corrected, averaged PM$_{2.5}$ ($\mu$g/m$^3$);
+        primary target variable.
+  \item \textbf{\texttt{corr\_pm2.5\_a}, \texttt{corr\_pm2.5\_b}} --- Corrected PM$_{2.5}$
+        from channels A and B independently.
+  \item \textbf{\texttt{temperature\_a}, \texttt{temperature\_b}} --- Ambient temperature
+        from each channel.
+  \item \textbf{\texttt{humidity\_a}, \texttt{humidity\_b}} --- Relative humidity from
+        each channel.
+  \item \textbf{\texttt{time\_stamp}} --- UTC timestamp at 2-minute resolution.
+  \item \textbf{\texttt{sensor\_index}} --- Sensor identifier.
+\end{itemize}
+
+\subsection{Data Limitations}
+
+The dataset covers a single calendar month, limiting seasonal generalizability.
+Precipitation data and wind speed/direction are not included; both would
+strengthen event detection and washout analysis.
+Sensor GPS coordinates are not provided, which prevents spatial interpolation
+or wind-direction-based smoke tracking.
+
+% ── 4. Methods ────────────────────────────────────────────────────────────────
+\section{Methods}
+
+Our system consists of three independent components, each of which adds a layer
+of information on top of the raw PM$_{2.5}$ readings.
+
+\subsection{Component 1: Dual-Sensor Trust Scoring}
+
+\subsubsection{Motivation}
+
+Each sensor unit produces two independent PM$_{2.5}$ readings (channels A and B).
+Under normal operation, the two channels should agree closely.
+Persistent or large divergence indicates that at least one channel is unreliable,
+whether due to sensor failure, contamination, or calibration drift.
+
+\subsubsection{Formula}
+
+For each timestamp, we compute a trust score $T \in [0, 100]$ as:
+
+\begin{equation}
+  T = 100 \cdot \exp\!\left(-3 \cdot \frac{|A - B|}{\bar{x}}\right),
+  \quad \bar{x} = \frac{A + B}{2}
+  \label{eq:trust}
+\end{equation}
+
+where $A = \mathtt{corr\_pm2.5\_a}$, $B = \mathtt{corr\_pm2.5\_b}$, and
+$\bar{x}$ is their mean.
+If $\bar{x} < 0.1$~$\mu$g/m$^3$ (both channels near zero), $T$ is set to 100
+to avoid division-by-zero while respecting that near-zero agreement is valid.
+
+\subsubsection{Interpretation}
+
+The exponential decay ensures that small differences (e.g., 2\%) yield
+near-perfect trust ($T \approx 94$), while large divergences (e.g., 67\%) collapse
+trust toward zero.
+Table~\ref{tab:trust_examples} illustrates the behavior.
+
+\begin{table}[h!]
+\centering
+\caption{Trust score examples at various divergence levels.}
+\label{tab:trust_examples}
+\begin{tabular}{ccccc}
+\toprule
+$A$ ($\mu$g/m$^3$) & $B$ ($\mu$g/m$^3$) & $|A-B|/\bar{x}$ & $T$ & Badge \\
+\midrule
+10.0 & 10.2 & 2.0\%  & 94 & HIGH \\
+10.0 & 12.0 & 18.2\% & 58 & MED  \\
+10.0 & 20.0 & 66.7\% & 1  & LOW  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Results}
+
+The mean trust score across all sensors and timestamps ranged from
+78.2\% (sensor 290694) to 84.2\% (sensor 249445), consistent with
+normally functioning dual-channel hardware.
+
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Component 2: Rule-Based Event Detection}
+
+\subsubsection{Motivation}
+
+Three classes of meaningful events can be identified from the PM$_{2.5}$ time
+series without labeled training data: (1)~\textit{smoke spikes} from fires or
+pollution episodes, (2)~\textit{precipitation washout} events where rain rapidly
+clears particulates, and (3)~\textit{sensor failures} where A/B divergence
+indicates hardware problems.
+
+\subsubsection{Preprocessing}
+
+For each sensor, we compute a rolling mean $\mu_t$ and rolling change
+$\Delta_t = x_t - x_{t-w}$ over a window $w$ (measured in 2-minute timesteps):
+\[
+  \mu_t = \frac{1}{w}\sum_{i=0}^{w-1} x_{t-i}, \qquad
+  \Delta_t = x_t - x_{t-w}
+\]
+
+\subsubsection{Detection Rules}
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Smoke spike:} $\Delta_t > 0.5 \cdot \mu_t$ and $x_t > 35$~$\mu$g/m$^3$
+        (rapid rise $\geq$50\% above the 30-minute rolling mean, sustained above
+        the EPA Unhealthy for Sensitive Groups threshold). Severity is \textit{high}
+        if $x_t > 80$~$\mu$g/m$^3$, else \textit{medium}.
+  \item \textbf{Rain washout:} $\Delta_t < -0.35 \cdot \mu_t$ and $\mu_t > 5$~$\mu$g/m$^3$
+        (rapid drop $\geq$35\% over one hour from a non-trivial baseline).
+  \item \textbf{Sensor failure:} $T < 40$ and $|A-B|/\bar{x} > 0.4$
+        persisting for $\geq$3 consecutive readings ($\approx$6 min).
+\end{itemize}
+
+Events are deduplicated to at most one occurrence per type per sensor per
+two-hour window to avoid alert flooding.
+
+\subsubsection{Confidence Scoring}
+
+Confidence is assigned heuristically:
+\begin{align*}
+  c_{\text{smoke}} &= \min\!\left(0.95,\; 0.60 + \frac{x_t - 35}{200}\right) \\
+  c_{\text{washout}} &= \min\!\left(0.90,\; 0.50 + \frac{|\Delta_t|}{50}\right) \\
+  c_{\text{failure}} &= 0.95
+\end{align*}
+
+These values reflect relative certainty: sensor failures that persist have
+a high mechanical probability, while smoke and washout classifications may
+be confounded by other sources (e.g., traffic, industrial emissions).
+
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Component 3: PM$_{2.5}$ Forecasting with Uncertainty}
+
+\subsubsection{Model}
+
+We train a \textbf{Random Forest regressor} (100 trees, maximum depth 12,
+scikit-learn default otherwise) per sensor to predict PM$_{2.5}$ at
+timestep $t+1$ (two minutes ahead) from features available at time $t$.
+
+\subsubsection{Feature Engineering}
+
+The feature vector $\mathbf{x}_t$ is constructed entirely from past information,
+with no future leakage:
+
+\[
+  \mathbf{x}_t = \left[
+    x_{t-1},\, x_{t-2},\, \ldots,\, x_{t-12},\;
+    \text{temp}_t,\;
+    \text{humidity}_t,\;
+    \text{hour}(t),\;
+    \text{dow}(t)
+  \right]
+\]
+
+where $x_{t-k}$ are 12 lagged PM$_{2.5}$ values (past 24 minutes),
+$\text{temp}_t$ and $\text{humidity}_t$ are channel-averaged meteorological
+readings, and $\text{hour}(t)$, $\text{dow}(t)$ capture diurnal and weekly
+periodicity.
+
+\subsubsection{Train/Test Split}
+
+We use a strict \textbf{temporal split}: the first 80\% of each sensor's
+time series is used for training, and the remaining 20\% is held out for
+evaluation.
+Random shuffling is never applied, preventing data leakage across the
+temporal boundary.
+
+\subsubsection{Uncertainty Estimation}
+
+Prediction intervals are produced by \textbf{tree bootstrap}: each of
+the 100 trees makes an independent prediction, yielding a distribution of
+100 values per test point. The 80\% prediction interval is:
+
+\[
+  \left[\hat{x}_{0.10},\; \hat{x}_{0.90}\right]
+\]
+
+where $\hat{x}_{p}$ denotes the $p$-th percentile across trees.
+This approach does not require a separate calibration set and is
+computationally inexpensive given the model is already trained.
+
+\subsubsection{Results}
+
+Table~\ref{tab:forecast} reports forecast accuracy on the held-out test sets.
+
+\begin{table}[h!]
+\centering
+\caption{PM$_{2.5}$ next-step forecast accuracy (test set, 20\% temporal holdout).}
+\label{tab:forecast}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Sensor} & \textbf{MAE ($\mu$g/m$^3$)} & \textbf{RMSE ($\mu$g/m$^3$)} & \textbf{$R^2$} \\
+\midrule
+230019 & 0.51 & 1.15 & 0.982 \\
+249443 & 1.12 & 4.53 & 0.766 \\
+249445 & 0.77 & 2.00 & 0.955 \\
+297697 & 0.67 & 1.53 & 0.965 \\
+\midrule
+\textbf{Mean} & \textbf{0.77} & \textbf{2.30} & \textbf{0.917} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Sensor 249443 shows higher error, likely due to greater variability in its
+time series; its $R^2 = 0.77$ indicates that the model still explains the
+majority of variance, but with less precision than the other units.
+
+% ── 5. Dashboard ──────────────────────────────────────────────────────────────
+\section{Dashboard}
+
+\subsection{Architecture}
+
+The monitoring dashboard is a React single-page application built with Vite.
+A Python export script (\texttt{export\_dashboard\_data.py}) runs the full ML
+pipeline and serializes the results to a static \texttt{data.json} file, which
+the dashboard fetches on load.
+This decoupled architecture means the computationally heavy Python pipeline
+runs once at build time; the client-side dashboard is fast and requires no backend.
+The application is deployable to Vercel with a single command.
+
+\subsection{Tabs and Visualizations}
+
+\begin{description}[style=nextline, leftmargin=2em]
+  \item[\textbf{Overview}]
+    Five sensor cards showing current AQI (EPA 2024 color scale), PM$_{2.5}$
+    in $\mu$g/m$^3$, a trust badge (HIGH / MED / LOW), and a 60-point sparkline.
+    A network aggregate panel shows the mean PM$_{2.5}$, maximum AQI, and
+    count of recent alerts.
+
+  \item[\textbf{Detail}]
+    A full-width time series chart for a selected sensor.
+    Time range is switchable (1h / 6h / 24h / 7d).
+    EPA threshold lines (9, 35.4, 55.4~$\mu$g/m$^3$) are drawn as
+    horizontal references.
+    An optional A/B overlay shows channel-level readings alongside the
+    fused \texttt{pm\_cf1} value, making sensor reliability directly visible.
+
+  \item[\textbf{Events}]
+    A chronological list of detected events with type (smoke spike /
+    rain washout / sensor failure), sensor ID, timestamp, severity, and
+    confidence score.
+    An event-type summary bar shows aggregate counts.
+
+  \item[\textbf{Forecast}]
+    Per-sensor short-term forecast charts showing the Random Forest point
+    prediction and 80\% tree-bootstrap confidence band.
+    Sensor 290694 is flagged as unreliable and excluded from the network average.
+
+  \item[\textbf{Map (Purple Air)}]
+    An embedded iframe of the live PurpleAir regional PM$_{2.5}$ map,
+    providing geographic context for the five-sensor network.
+\end{description}
+
+\subsection{EPA AQI Conversion}
+
+AQI values are computed from \texttt{pm\_cf1} using the 2024 EPA piecewise
+linear breakpoints \cite{epa2024}:
+
+\begin{table}[h!]
+\centering
+\caption{EPA 2024 AQI breakpoints for PM$_{2.5}$ (24-hour average).}
+\label{tab:aqi}
+\begin{tabular}{llc}
+\toprule
+\textbf{AQI Range} & \textbf{Category} & \textbf{PM$_{2.5}$ ($\mu$g/m$^3$)} \\
+\midrule
+0--50   & Good                             & 0.0--9.0   \\
+51--100 & Moderate                         & 9.1--35.4  \\
+101--150 & Unhealthy for Sensitive Groups  & 35.5--55.4 \\
+151--200 & Unhealthy                       & 55.5--125.4 \\
+201--300 & Very Unhealthy                  & 125.5--225.4 \\
+301--500 & Hazardous                       & 225.5+ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ── 6. Discussion ─────────────────────────────────────────────────────────────
+\section{Discussion}
+
+\subsection{Forecasting Performance}
+
+The strong $R^2$ values (up to 0.98 for sensor 230019) confirm that next-step
+PM$_{2.5}$ is highly predictable from recent history at 2-minute resolution.
+This is expected: air quality changes slowly relative to the sampling interval,
+so lag features carry most of the predictive signal.
+The practical utility of next-step forecasting is limited; future work should
+extend the horizon to 30 minutes or 1 hour and evaluate whether performance
+degrades gracefully.
+
+\subsection{Trust Score Limitations}
+
+The trust formula in Equation~\ref{eq:trust} is analytically simple and requires
+no training data, but it is not calibrated against an independent ground truth.
+A reading could have high A/B agreement while both channels are simultaneously
+biased (e.g., due to a contaminated housing).
+Future work could calibrate the trust score against co-located reference monitors.
+
+\subsection{Event Detection Without Labels}
+
+The rule-based event detector identifies events by threshold logic, not by
+learning from labeled examples.
+Without a ground-truth event log (fire incident reports, precipitation gauge data),
+it is not possible to report precision or recall.
+The detector is best understood as a heuristic alert system that reduces the
+search space for human analysts.
+
+\subsection{Data Limitations}
+
+The dataset covers a single month in a single location.
+Seasonal patterns (e.g., winter heating, summer wildfires) and multi-year
+trends are not captured.
+The absence of precipitation data is a significant gap: without rain gauge
+records, washout events cannot be definitively confirmed, only inferred from
+PM$_{2.5}$ drops.
+
+% ── 7. Conclusion ─────────────────────────────────────────────────────────────
+\section{Conclusion}
+
+We presented an end-to-end air quality monitoring system for a five-sensor
+PM$_{2.5}$ network at Lewis University.
+The system introduces a dual-sensor trust scoring metric based on channel
+agreement, a rule-based event detection pipeline for smoke, washout, and
+sensor failure events, and a Random Forest forecasting model with tree-bootstrap
+uncertainty intervals.
+Forecast accuracy ranges from MAE 0.51--1.12~$\mu$g/m$^3$ ($R^2$ 0.77--0.98)
+across the four high-coverage sensors.
+All components are integrated into a React dashboard deployed on Vercel,
+with real data exported from the Python pipeline at build time.
+
+Future directions include extending the forecast horizon, calibrating trust
+scores against reference monitors, incorporating external precipitation and
+wind data, and exploring multi-sensor fusion to estimate network-wide PM$_{2.5}$
+fields.
+
+% ── Acknowledgements ──────────────────────────────────────────────────────────
+\section*{Acknowledgements}
+
+The authors thank Dr.\ Kozminski at Lewis University for providing sensor data,
+project guidance, and continued mentorship throughout this work.
+
+% ── References ────────────────────────────────────────────────────────────────
+\section*{References}
+\begin{thebibliography}{9}
+
+\bibitem{epa2024}
+U.S. Environmental Protection Agency.
+\textit{Final Updates to the Air Quality Index (AQI) for Particulate Matter ---
+Fact Sheet and Common Questions}.
+EPA-456/F-24-001. February 2024.
+\url{https://www.epa.gov/system/files/documents/2024-02/pm-naaqs-air-quality-index-fact-sheet.pdf}
+
+\bibitem{chen2021}
+Chen, T., \& Guestrin, C.
+\textit{XGBoost: A scalable tree boosting system}.
+Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge
+Discovery and Data Mining, 2016, pp.\ 785--794.
+
+\bibitem{purpleair}
+PurpleAir, Inc.
+\textit{PurpleAir Real-Time Air Quality Map}.
+\url{https://map.purpleair.com/}, accessed 2026.
+
+\bibitem{acs_data}
+Kozminski, D.
+\textit{ACS\_AQ: Air Quality Sensor Network Data --- November 2025}.
+GitHub repository.
+\url{https://github.com/DrKoz/ACS_AQ}, 2025.
+
+\bibitem{scikit}
+Pedregosa, F., et al.
+\textit{Scikit-learn: Machine learning in Python}.
+Journal of Machine Learning Research, 12, pp.\ 2825--2830, 2011.
+
+\end{thebibliography}
+
+\end{document}

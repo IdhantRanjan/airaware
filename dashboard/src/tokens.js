@@ -1,31 +1,27 @@
-// Design tokens — Gradient Modern theme
+// Design tokens — Light Glassmorphism
 export const C = {
-  bg:       "#060611",
-  surface:  "#0c0c1d",
-  elevated: "#121228",
-  border:   "#1a1a35",
-  border2:  "#252545",
-  text:     "#eaeaf5",
-  sub:      "#8888b0",
-  muted:    "#555580",
-  accent:   "#38bdf8",     // sky-400
-  accent2:  "#818cf8",     // indigo-400
-  accent3:  "#34d399",     // emerald-400
-  warm:     "#fb923c",     // orange-400
-  gradientA: "linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)",
-  gradientB: "linear-gradient(135deg, #818cf8 0%, #c084fc 100%)",
-  gradientC: "linear-gradient(135deg, #34d399 0%, #38bdf8 100%)",
-  gradientWarm: "linear-gradient(135deg, #fb923c 0%, #f472b6 100%)",
-  gradientText: "linear-gradient(135deg, #38bdf8, #818cf8, #c084fc)",
+  bg:       "#ece9e3",        // warm off-white linen
+  bgAlt:    "#e8e4dd",        // slightly deeper for contrast sections
+  glass:    "rgba(255,255,255,0.68)",
+  glassSolid: "#ffffff",
+  border:   "rgba(0,0,0,0.09)",
+  borderSolid: "#d4d0c8",
+  text:     "#18181b",        // near-black
+  sub:      "#52525b",        // zinc-600
+  muted:    "#a1a1aa",        // zinc-400
+  accent:   "#1e40af",        // deep blue — not electric, not sky
+  accentHover: "#1e3a8a",
+  accentLight: "rgba(30,64,175,0.08)",
+  accentBorder: "rgba(30,64,175,0.2)",
 };
 
 export const AQI = {
-  good:        { color: "#34d399", bg: "#052e1640", label: "Good",              pmMax: 9.0,   aqiMax: 50  },
-  moderate:    { color: "#fbbf24", bg: "#1c140040", label: "Moderate",           pmMax: 35.4,  aqiMax: 100 },
-  sensitive:   { color: "#fb923c", bg: "#1c0a0040", label: "Unhealthy for SG",  pmMax: 55.4,  aqiMax: 150 },
-  unhealthy:   { color: "#f87171", bg: "#1c000040", label: "Unhealthy",          pmMax: 125.4, aqiMax: 200 },
-  veryUnhealthy:{ color: "#c084fc", bg: "#15002040", label: "Very Unhealthy",    pmMax: 225.4, aqiMax: 300 },
-  hazardous:   { color: "#fb7185", bg: "#1c000040", label: "Hazardous",          pmMax: 500,   aqiMax: 500 },
+  good:         { color: "#16a34a", bg: "rgba(22,163,74,0.08)",   label: "Good",             pmMax: 9.0,   aqiMax: 50  },
+  moderate:     { color: "#b45309", bg: "rgba(180,83,9,0.08)",    label: "Moderate",          pmMax: 35.4,  aqiMax: 100 },
+  sensitive:    { color: "#c2410c", bg: "rgba(194,65,12,0.08)",   label: "Unhealthy for SG", pmMax: 55.4,  aqiMax: 150 },
+  unhealthy:    { color: "#b91c1c", bg: "rgba(185,28,28,0.08)",   label: "Unhealthy",         pmMax: 125.4, aqiMax: 200 },
+  veryUnhealthy:{ color: "#6d28d9", bg: "rgba(109,40,217,0.08)", label: "Very Unhealthy",    pmMax: 225.4, aqiMax: 300 },
+  hazardous:    { color: "#9f1239", bg: "rgba(159,18,57,0.08)",   label: "Hazardous",         pmMax: 500,   aqiMax: 500 },
 };
 
 export const AQI_BREAKS = [
@@ -38,7 +34,7 @@ export const AQI_BREAKS = [
 ];
 
 export const T = {
-  display: "'Inter', 'Outfit', sans-serif",
+  display: "'Inter', sans-serif",
   mono:    "'JetBrains Mono', 'DM Mono', monospace",
 };
 
@@ -73,9 +69,9 @@ export function aqiMeta(aqi) {
 }
 
 export function trustLabel(t) {
-  if (t >= 80) return { text: "HIGH", color: "#34d399" };
-  if (t >= 55) return { text: "MED",  color: "#fbbf24" };
-  return              { text: "LOW",  color: "#f87171" };
+  if (t >= 80) return { text: "HIGH", color: "#16a34a" };
+  if (t >= 55) return { text: "MED",  color: "#b45309" };
+  return              { text: "LOW",  color: "#b91c1c" };
 }
 
 export function relTime(ts) {
@@ -86,22 +82,25 @@ export function relTime(ts) {
   return `${Math.round(diff / 86400)}d ago`;
 }
 
-// Shared card style factory
-export const card = (extra = {}) => ({
-  background: C.surface,
-  border: `1px solid ${C.border}`,
-  borderRadius: 12,
-  padding: "28px 32px",
+// True glass card — frosted white panel
+export const glass = (extra = {}) => ({
+  background: C.glass,
+  backdropFilter: "blur(20px) saturate(1.6)",
+  WebkitBackdropFilter: "blur(20px) saturate(1.6)",
+  border: `1px solid rgba(255,255,255,0.85)`,
+  boxShadow: "0 2px 20px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.9)",
+  borderRadius: 14,
+  padding: "24px 28px",
   ...extra,
 });
 
-export const glassCard = (extra = {}) => ({
-  background: `linear-gradient(135deg, ${C.surface}ee 0%, ${C.elevated}cc 100%)`,
+// Solid white card for areas where blur isn't needed
+export const card = (extra = {}) => ({
+  background: "rgba(255,255,255,0.85)",
   border: `1px solid ${C.border}`,
-  borderRadius: 16,
-  padding: "28px 32px",
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)",
+  borderRadius: 12,
+  padding: "24px 28px",
+  boxShadow: "0 1px 8px rgba(0,0,0,0.05)",
   ...extra,
 });
 
@@ -109,7 +108,7 @@ export const label = {
   fontFamily: T.display,
   fontSize: 11,
   fontWeight: 600,
-  letterSpacing: "0.08em",
+  letterSpacing: "0.07em",
   textTransform: "uppercase",
   color: C.muted,
 };
@@ -117,7 +116,7 @@ export const label = {
 export const sectionHeading = {
   fontFamily: T.display,
   fontWeight: 800,
-  fontSize: 32,
+  fontSize: 30,
   letterSpacing: "-0.03em",
   color: C.text,
   margin: 0,
@@ -125,15 +124,7 @@ export const sectionHeading = {
 
 export const bodyText = {
   fontFamily: T.display,
-  fontSize: 16,
-  lineHeight: 1.75,
+  fontSize: 15,
+  lineHeight: 1.7,
   color: C.sub,
 };
-
-// Gradient text helper (returns style object)
-export const gradientText = (gradient = C.gradientText) => ({
-  background: gradient,
-  WebkitBackgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  backgroundClip: "text",
-});

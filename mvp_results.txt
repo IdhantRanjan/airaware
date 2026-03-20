@@ -1,0 +1,7 @@
+Air Quality MVP Results
+Data: https://github.com/DrKoz/ACS_AQ
+
+Sensor 230019: MAE=0.5094, RMSE=1.1462, R²=0.9823
+Sensor 249443: MAE=1.1176, RMSE=4.5292, R²=0.7659
+Sensor 249445: MAE=0.7734, RMSE=1.9993, R²=0.9553
+Sensor 297697: MAE=0.6719, RMSE=1.5314, R²=0.9653

@@ -49,3 +49,4 @@ data/raw/
 # Playwright
 /test-results/
 /playwright-report/
+.vercel

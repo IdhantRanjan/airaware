@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
-import { C, T, card, glassCard, label as labelStyle, sectionHeading, bodyText, gradientText } from "../tokens.js";
+import { C, T, glass, card, sectionHeading, bodyText } from "../tokens.js";
 
 const TEAM = [
   {
     key: "ir",
     name: "Idhant Ranjan",
     role: "Student Researcher",
+    accentColor: C.accent,
     contributions: [
       "End-to-end ML pipeline (trust scoring, event detection, RF forecasting)",
       "Full-stack dashboard (React + Vite + Supabase)",
@@ -17,6 +18,7 @@ const TEAM = [
     key: "am",
     name: "Arun Muthukumar",
     role: "Data Analyst",
+    accentColor: "#6d28d9",
     contributions: [
       "Exploratory data analysis and cross-sensor divergence study",
       "Playwright web scraper for PurpleAir fallback collection",
@@ -28,6 +30,7 @@ const TEAM = [
     key: "vk",
     name: "Varun Kalidindi",
     role: "Machine Learning Engineer",
+    accentColor: "#0f766e",
     contributions: [
       "Initial data loading pipeline from DrKoz/ACS_AQ",
       "Exploratory analysis of sensor coverage and data quality",
@@ -39,6 +42,7 @@ const TEAM = [
     key: "jk",
     name: "Dr. Kozminski",
     role: "Faculty Mentor",
+    accentColor: "#b45309",
     contributions: [
       "Provided the November 2025 dataset (DrKoz/ACS_AQ)",
       "Research direction and methodology guidance",
@@ -50,12 +54,48 @@ const TEAM = [
     key: "cc",
     name: "Cathy Clarkin",
     role: "Research Advisor",
+    accentColor: "#b91c1c",
     contributions: [
       "Research framework and academic guidance",
       "Community connection and outreach coordination",
       "Project scope and priorities",
     ],
     initials: "CC",
+  },
+];
+
+const MISSION = [
+  {
+    color: C.accent,
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+        <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+      </svg>
+    ),
+    title: "Transparency",
+    desc: "Every method is documented. Every caveat is stated. We don't overstate what the models can do.",
+  },
+  {
+    color: "#16a34a",
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/>
+      </svg>
+    ),
+    title: "Community",
+    desc: "The southwest Chicago suburbs deserve localized air quality data. We built for Romeoville, Joliet, and the surrounding area.",
+  },
+  {
+    color: "#6d28d9",
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+        <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+      </svg>
+    ),
+    title: "Open source",
+    desc: "All code, data processing scripts, and methodology notes are published on GitHub under an open license.",
   },
 ];
 
@@ -72,15 +112,14 @@ const stagger = {
   viewport: { once: true },
 };
 
-function Avatar({ person, large = false }) {
-  const size = large ? 100 : 72;
+function Avatar({ person }) {
   return (
     <div style={{
-      width: size, height: size,
-      borderRadius: 16,
+      width: 68, height: 68,
+      borderRadius: 14,
       overflow: "hidden",
-      border: `1px solid ${C.border}`,
-      background: `linear-gradient(135deg, ${C.surface} 0%, ${C.elevated} 100%)`,
+      border: `1px solid rgba(0,0,0,0.09)`,
+      background: "rgba(255,255,255,0.7)",
       display: "flex", alignItems: "center", justifyContent: "center",
       flexShrink: 0,
     }}>
@@ -90,15 +129,14 @@ function Avatar({ person, large = false }) {
         style={{ width: "100%", height: "100%", objectFit: "cover" }}
         onError={(e) => {
           e.target.style.display = "none";
-          e.target.parentElement.querySelector(".initials").style.display = "flex";
+          e.target.parentElement.querySelector(".initials-badge").style.display = "flex";
         }}
       />
-      <span className="initials" style={{
+      <span className="initials-badge" style={{
         display: "none", width: "100%", height: "100%",
         alignItems: "center", justifyContent: "center",
-        fontFamily: T.mono, fontWeight: 700,
-        fontSize: large ? 24 : 17,
-        ...gradientText(),
+        fontFamily: T.mono, fontWeight: 700, fontSize: 16,
+        color: person.accentColor,
       }}>{person.initials}</span>
     </div>
   );
@@ -113,10 +151,9 @@ export default function About() {
         <motion.div {...fadeUp} style={{ marginBottom: 72 }}>
           <h1 style={{
             fontFamily: T.display, fontWeight: 900, fontSize: 44,
-            letterSpacing: "-0.04em", marginBottom: 16,
+            letterSpacing: "-0.04em", marginBottom: 16, color: C.text,
           }}>
-            <span style={{ color: C.text }}>About </span>
-            <span style={gradientText()}>AirAware</span>
+            About <span style={{ color: C.accent }}>AirAware</span>
           </h1>
           <p style={{ ...bodyText, fontSize: 17, maxWidth: 640 }}>
             An open-source air quality monitoring platform built by the ACS Research Group
@@ -129,54 +166,23 @@ export default function About() {
         <motion.div {...fadeUp} style={{ marginBottom: 72 }}>
           <h2 style={{ ...sectionHeading, fontSize: 28, marginBottom: 24 }}>Mission</h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-            {[
-              {
-                icon: (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gA)" strokeWidth="1.5">
-                    <defs><linearGradient id="gA" x1="0" y1="0" x2="24" y2="24"><stop stopColor="#38bdf8"/><stop offset="1" stopColor="#818cf8"/></linearGradient></defs>
-                    <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
-                  </svg>
-                ),
-                title: "Transparency",
-                desc: "Every method is documented. Every caveat is stated. We don't overstate what the models can do.",
-                gradient: C.gradientA,
-              },
-              {
-                icon: (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gB)" strokeWidth="1.5">
-                    <defs><linearGradient id="gB" x1="0" y1="0" x2="24" y2="24"><stop stopColor="#34d399"/><stop offset="1" stopColor="#38bdf8"/></linearGradient></defs>
-                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/>
-                  </svg>
-                ),
-                title: "Community",
-                desc: "The southwest Chicago suburbs deserve localized air quality data. We built for Romeoville, Joliet, and the surrounding area.",
-                gradient: C.gradientC,
-              },
-              {
-                icon: (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gC)" strokeWidth="1.5">
-                    <defs><linearGradient id="gC" x1="0" y1="0" x2="24" y2="24"><stop stopColor="#818cf8"/><stop offset="1" stopColor="#c084fc"/></linearGradient></defs>
-                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-                  </svg>
-                ),
-                title: "Open source",
-                desc: "All code, data processing scripts, and methodology notes are published on GitHub under an open license.",
-                gradient: C.gradientB,
-              },
-            ].map(({ icon, title, desc, gradient }, i) => (
-              <motion.div key={title} {...stagger} transition={{ delay: i * 0.1, duration: 0.5 }}
+            {MISSION.map(({ color, icon, title, desc }, i) => (
+              <motion.div key={title} {...stagger}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
                 style={{
-                  ...glassCard(),
-                  position: "relative",
-                  overflow: "hidden",
+                  ...glass({ padding: "24px 24px 28px" }),
+                  position: "relative", overflow: "hidden",
                 }}
               >
                 <div style={{
-                  position: "absolute", top: 0, left: 0, right: 0, height: 2,
-                  background: gradient,
+                  position: "absolute", top: 0, left: 0, right: 0, height: 3,
+                  background: color, borderRadius: "14px 14px 0 0",
                 }}/>
-                <div style={{ marginBottom: 16, marginTop: 4 }}>{icon}</div>
-                <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17, marginBottom: 8 }}>{title}</div>
+                <div style={{ color, marginBottom: 16, marginTop: 4 }}>{icon}</div>
+                <div style={{
+                  fontFamily: T.display, fontWeight: 700, fontSize: 17,
+                  color: C.text, marginBottom: 8,
+                }}>{title}</div>
                 <div style={{ ...bodyText, fontSize: 14 }}>{desc}</div>
               </motion.div>
             ))}
@@ -185,33 +191,45 @@ export default function About() {
 
         {/* Team */}
         <motion.div {...fadeUp} style={{ marginBottom: 72 }}>
-          <h2 style={{ ...sectionHeading, fontSize: 28, marginBottom: 8 }}>Team</h2>
-          <p style={{ ...bodyText, marginBottom: 36 }}>Lewis University &middot; Spring 2026</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <h2 style={{ ...sectionHeading, fontSize: 28, marginBottom: 6 }}>Team</h2>
+          <p style={{ ...bodyText, marginBottom: 32 }}>Lewis University &middot; Spring 2026</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {TEAM.map((person, i) => (
-              <motion.div key={person.key} {...stagger} transition={{ delay: i * 0.08, duration: 0.5 }}
+              <motion.div key={person.key} {...stagger}
+                transition={{ delay: i * 0.07, duration: 0.5 }}
                 style={{
-                  ...glassCard({ padding: "24px 28px" }),
-                  display: "flex", alignItems: "flex-start", gap: 24,
+                  ...glass({ padding: "20px 24px" }),
+                  display: "flex", alignItems: "flex-start", gap: 22,
                   position: "relative", overflow: "hidden",
                 }}
               >
-                <Avatar person={person} />
+                {/* Left accent bar */}
+                <div style={{
+                  position: "absolute", left: 0, top: 0, bottom: 0, width: 3,
+                  background: person.accentColor, borderRadius: "14px 0 0 14px",
+                }}/>
+                <div style={{ paddingLeft: 8 }}>
+                  <Avatar person={person} />
+                </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 4 }}>
-                    <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17, color: C.text }}>
-                      {person.name}
-                    </span>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 4 }}>
                     <span style={{
-                      fontFamily: T.display, fontSize: 12, fontWeight: 600,
-                      ...gradientText(),
-                      padding: "2px 0",
+                      fontFamily: T.display, fontWeight: 700, fontSize: 16, color: C.text,
+                    }}>{person.name}</span>
+                    <span style={{
+                      fontFamily: T.display, fontSize: 11, fontWeight: 600,
+                      letterSpacing: "0.06em", textTransform: "uppercase",
+                      color: person.accentColor,
+                      padding: "2px 7px", borderRadius: 5,
+                      background: `${person.accentColor}14`,
                     }}>{person.role}</span>
                   </div>
-                  <ul style={{ margin: "8px 0 0", paddingLeft: 18 }}>
+                  <ul style={{ margin: "6px 0 0", paddingLeft: 16 }}>
                     {person.contributions.map((c) => (
-                      <li key={c} style={{ fontFamily: T.display, fontSize: 14, color: C.sub,
-                        lineHeight: 1.7, marginBottom: 2 }}>{c}</li>
+                      <li key={c} style={{
+                        fontFamily: T.display, fontSize: 13, color: C.sub,
+                        lineHeight: 1.75, marginBottom: 1,
+                      }}>{c}</li>
                     ))}
                   </ul>
                 </div>
@@ -244,9 +262,10 @@ export default function About() {
                 linkLabel: "airnow.gov",
               },
             ].map(({ name, desc, link, linkLabel }, i) => (
-              <motion.div key={name} {...stagger} transition={{ delay: i * 0.08, duration: 0.4 }}
+              <motion.div key={name} {...stagger}
+                transition={{ delay: i * 0.08, duration: 0.4 }}
                 style={{
-                  ...glassCard({ padding: "18px 24px" }),
+                  ...glass({ padding: "16px 22px" }),
                   display: "flex", alignItems: "center", gap: 20,
                 }}
               >
@@ -255,12 +274,15 @@ export default function About() {
                   <div style={{ fontFamily: T.display, fontSize: 13, color: C.sub, marginTop: 2 }}>{desc}</div>
                 </div>
                 <a href={link} target="_blank" rel="noopener noreferrer"
-                  style={{ fontFamily: T.mono, fontSize: 12, color: C.accent, textDecoration: "none",
-                    whiteSpace: "nowrap", transition: "opacity 0.2s" }}
-                  onMouseEnter={(e) => e.target.style.opacity = "0.7"}
+                  style={{
+                    fontFamily: T.mono, fontSize: 12, color: C.accent,
+                    textDecoration: "none", whiteSpace: "nowrap",
+                    transition: "opacity 0.15s",
+                  }}
+                  onMouseEnter={(e) => e.target.style.opacity = "0.65"}
                   onMouseLeave={(e) => e.target.style.opacity = "1"}
                 >
-                  {linkLabel} &#8599;
+                  {linkLabel} ↗
                 </a>
               </motion.div>
             ))}
@@ -270,21 +292,20 @@ export default function About() {
         {/* Open source CTA */}
         <motion.div {...fadeUp}
           style={{
-            ...glassCard({ padding: "44px 40px" }),
+            ...glass({ padding: "44px 40px" }),
             textAlign: "center",
-            position: "relative",
-            overflow: "hidden",
+            position: "relative", overflow: "hidden",
           }}
         >
           <div style={{
-            position: "absolute", top: 0, left: 0, right: 0, height: 2,
-            background: C.gradientA,
+            position: "absolute", top: 0, left: 0, right: 0, height: 3,
+            background: C.accent, borderRadius: "14px 14px 0 0",
           }}/>
           <div style={{
-            fontFamily: T.display, fontWeight: 800, fontSize: 24,
-            letterSpacing: "-0.03em", marginBottom: 12,
+            fontFamily: T.display, fontWeight: 800, fontSize: 26,
+            letterSpacing: "-0.03em", color: C.text, marginBottom: 12,
           }}>
-            <span style={gradientText()}>Open source</span>
+            Open source
           </div>
           <p style={{ ...bodyText, maxWidth: 480, margin: "0 auto 28px" }}>
             The full codebase — ML pipeline, dashboard, data collector — is publicly available.
@@ -298,11 +319,12 @@ export default function About() {
             rel="noopener noreferrer"
             style={{
               display: "inline-flex", alignItems: "center", gap: 8,
-              background: C.gradientA, color: "#fff",
-              padding: "13px 28px", borderRadius: 10,
+              background: C.accent, color: "#fff",
+              padding: "12px 26px", borderRadius: 10,
               fontFamily: T.display, fontWeight: 600, fontSize: 15,
               textDecoration: "none",
-              boxShadow: "0 4px 24px rgba(56,189,248,0.2)",
+              boxShadow: "0 2px 12px rgba(30,64,175,0.25)",
+              transition: "background 0.15s",
             }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">

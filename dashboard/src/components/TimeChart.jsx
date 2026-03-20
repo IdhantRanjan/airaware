@@ -1,12 +1,13 @@
 import { C, T } from "../tokens.js";
 
+// EPA reference lines — darkened for readability on light backgrounds
 const EPA_REFS = [
-  { pm: 9.0,  label: "Good",     color: "#22c55e" },
-  { pm: 35.4, label: "Moderate", color: "#eab308" },
-  { pm: 55.4, label: "USG",      color: "#f97316" },
+  { pm: 9.0,  label: "Good",     color: "#16a34a" },
+  { pm: 35.4, label: "Moderate", color: "#b45309" },
+  { pm: 55.4, label: "USG",      color: "#c2410c" },
 ];
 
-export default function TimeChart({ data = [], color = "#3b82f6", showAB = false, height = 200 }) {
+export default function TimeChart({ data = [], color = "#1e40af", showAB = false, height = 200 }) {
   if (!data || data.length < 2) {
     return (
       <div style={{
@@ -22,7 +23,7 @@ export default function TimeChart({ data = [], color = "#3b82f6", showAB = false
   }
 
   const W = 640, H = height;
-  const P = { t: 12, r: 20, b: 36, l: 48 };
+  const P = { t: 12, r: 28, b: 36, l: 48 };
   const IW = W - P.l - P.r, IH = H - P.t - P.b;
 
   const pms  = data.map((d) => d.pm_cf1 ?? d.pm ?? 0);
@@ -53,18 +54,18 @@ export default function TimeChart({ data = [], color = "#3b82f6", showAB = false
       {yTicks.map((v) => (
         <g key={v}>
           <line x1={P.l} y1={toY(v)} x2={W - P.r} y2={toY(v)}
-            stroke={C.border} strokeWidth="0.5"/>
+            stroke="rgba(0,0,0,0.08)" strokeWidth="0.5"/>
           <text x={P.l - 8} y={toY(v) + 4}
             textAnchor="end" fontFamily={T.mono} fontSize="9" fill={C.muted}>{v}</text>
         </g>
       ))}
       {/* EPA reference lines */}
-      {EPA_REFS.filter((r) => r.pm <= yMax).map(({ pm, label, color }) => (
+      {EPA_REFS.filter((ref) => ref.pm <= yMax).map(({ pm, label, color: refColor }) => (
         <g key={label}>
           <line x1={P.l} y1={toY(pm)} x2={W - P.r} y2={toY(pm)}
-            stroke={color} strokeWidth="0.7" strokeDasharray="4,3" opacity="0.45"/>
-          <text x={W - P.r + 2} y={toY(pm) + 3}
-            fontFamily={T.mono} fontSize="7" fill={color} opacity="0.7">{label}</text>
+            stroke={refColor} strokeWidth="0.8" strokeDasharray="4,3" opacity="0.5"/>
+          <text x={W - P.r + 3} y={toY(pm) + 3}
+            fontFamily={T.mono} fontSize="7" fill={refColor} opacity="0.75">{label}</text>
         </g>
       ))}
       {/* X labels */}
@@ -73,8 +74,8 @@ export default function TimeChart({ data = [], color = "#3b82f6", showAB = false
           textAnchor="middle" fontFamily={T.mono} fontSize="8" fill={C.muted}>{label}</text>
       ))}
       {/* A/B channels */}
-      {showAB && aPts && <polyline points={aPts} fill="none" stroke="#60a5fa" strokeWidth="1" opacity="0.55"/>}
-      {showAB && bPts && <polyline points={bPts} fill="none" stroke="#f472b6" strokeWidth="1" opacity="0.55"/>}
+      {showAB && aPts && <polyline points={aPts} fill="none" stroke="#2563eb" strokeWidth="1" opacity="0.45"/>}
+      {showAB && bPts && <polyline points={bPts} fill="none" stroke="#db2777" strokeWidth="1" opacity="0.45"/>}
       {/* Main line */}
       <polyline points={mainPts} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round"/>
     </svg>
