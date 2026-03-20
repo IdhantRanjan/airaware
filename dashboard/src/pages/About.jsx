@@ -4,7 +4,7 @@ const TEAM = [
   {
     key: "ir",
     name: "Idhant Ranjan",
-    role: "Project Lead",
+    role: "Student Researcher",
     contributions: [
       "End-to-end ML pipeline (trust scoring, event detection, RF forecasting)",
       "Full-stack dashboard (React + Vite + Supabase)",
@@ -26,7 +26,7 @@ const TEAM = [
   {
     key: "vk",
     name: "Varun Kalidindi",
-    role: "Data Engineer",
+    role: "Machine Learning Engineer",
     contributions: [
       "Initial data loading pipeline from DrKoz/ACS_AQ",
       "Exploratory analysis of sensor coverage and data quality",

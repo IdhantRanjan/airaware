@@ -2,11 +2,11 @@ import { useNavigate } from "react-router-dom";
 import { C, T, AQI, card, label, sectionHeading, bodyText } from "../tokens.js";
 
 const TEAM = [
-  { key: "ir",  name: "Idhant Ranjan",    role: "Project Lead · ML pipeline · Dashboard",       initials: "IR" },
-  { key: "am",  name: "Arun Muthukumar",  role: "EDA · Cross-sensor analysis · Playwright scraper", initials: "AM" },
-  { key: "vk",  name: "Varun Kalidindi", role: "Data loading · Exploratory analysis",            initials: "VK" },
-  { key: "jk",  name: "Dr. Kozminski",   role: "Faculty mentor · Data provider",                 initials: "JK" },
-  { key: "cc",  name: "Cathy Clarkin",   role: "Research advisor",                               initials: "CC" },
+  { key: "ir",  name: "Idhant Ranjan",    role: "Student Researcher",       initials: "IR" },
+  { key: "am",  name: "Arun Muthukumar",  role: "Data Analyst",             initials: "AM" },
+  { key: "vk",  name: "Varun Kalidindi", role: "Machine Learning Engineer", initials: "VK" },
+  { key: "jk",  name: "Dr. Kozminski",   role: "Faculty Mentor",            initials: "JK" },
+  { key: "cc",  name: "Cathy Clarkin",   role: "Research Advisor",          initials: "CC" },
 ];
 
 const AQI_GUIDE = [
@@ -84,54 +84,59 @@ export default function Home() {
 
       {/* ─── Hero ─────────────────────────────────────────────── */}
       <section style={{
-        padding: "100px 48px 80px",
-        maxWidth: 960,
+        padding: "80px 48px 72px",
+        maxWidth: 1100,
         margin: "0 auto",
+        display: "grid",
+        gridTemplateColumns: "1fr 380px",
+        gap: 64,
+        alignItems: "center",
       }}>
-        <div style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 8,
-          background: C.elevated,
-          border: `1px solid ${C.border2}`,
-          borderRadius: 100,
-          padding: "5px 14px",
-          marginBottom: 32,
-        }}>
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e",
-            animation: "pulse 2s infinite" }} />
-          <span style={{ fontFamily: T.display, fontSize: 12, color: C.sub }}>
-            Live network active · SW Chicago suburbs
-          </span>
-        </div>
+        <div>
+          <div style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 7,
+            background: "transparent",
+            border: `1px solid ${C.border2}`,
+            borderRadius: 4,
+            padding: "4px 12px",
+            marginBottom: 28,
+          }}>
+            <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#22c55e",
+              animation: "pulse 2s infinite" }} />
+            <span style={{ fontFamily: T.mono, fontSize: 11, color: C.sub, letterSpacing: "0.05em" }}>
+              LIVE NETWORK · SW CHICAGO SUBURBS
+            </span>
+          </div>
 
-        <h1 style={{
-          fontFamily: T.display,
-          fontWeight: 800,
-          fontSize: "clamp(40px, 6vw, 64px)",
-          letterSpacing: "-0.03em",
-          lineHeight: 1.1,
-          margin: "0 0 24px",
-          color: C.text,
-        }}>
-          Air quality monitoring<br />
-          <span style={{ color: C.accent }}>built for the community.</span>
-        </h1>
+          <h1 style={{
+            fontFamily: T.display,
+            fontWeight: 800,
+            fontSize: "clamp(36px, 4.5vw, 52px)",
+            letterSpacing: "-0.03em",
+            lineHeight: 1.12,
+            margin: "0 0 20px",
+            color: C.text,
+          }}>
+            Air quality monitoring<br />
+            for southwest Chicago.
+          </h1>
 
-        <p style={{
-          ...bodyText,
-          fontSize: 18,
-          maxWidth: 620,
-          marginBottom: 40,
-        }}>
-          AirAware tracks PM2.5 across the southwest Chicago suburbs in real time.
-          Built by the ACS Research Group at Lewis University, it combines live sensor
-          data with peer-reviewed ML methods to make air quality science transparent.
-        </p>
+          <p style={{
+            ...bodyText,
+            fontSize: 16,
+            maxWidth: 520,
+            marginBottom: 36,
+          }}>
+            AirAware tracks PM2.5 in real time across Romeoville, Joliet, Lockport,
+            and Bolingbrook. Built by the ACS Research Group at Lewis University —
+            live data, documented methods, honest caveats.
+          </p>
 
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <button
-            onClick={() => nav("/live")}
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <button
+              onClick={() => nav("/live")}
             style={{
               background: C.accent,
               color: "#fff",
@@ -140,11 +145,12 @@ export default function Home() {
               padding: "13px 28px",
               fontFamily: T.display,
               fontWeight: 600,
-              fontSize: 15,
+              fontSize: 14,
               cursor: "pointer",
               transition: "background 0.15s",
+              borderRadius: 6,
             }}
-            onMouseEnter={(e) => e.target.style.background = "#2563eb"}
+            onMouseEnter={(e) => e.target.style.background = "#3668e8"}
             onMouseLeave={(e) => e.target.style.background = C.accent}
           >
             Open Live Monitor →
@@ -153,19 +159,52 @@ export default function Home() {
             onClick={() => nav("/research")}
             style={{
               background: "transparent",
-              color: C.text,
+              color: C.sub,
               border: `1px solid ${C.border2}`,
-              borderRadius: 10,
-              padding: "13px 28px",
+              borderRadius: 6,
+              padding: "11px 22px",
               fontFamily: T.display,
-              fontWeight: 600,
-              fontSize: 15,
+              fontWeight: 500,
+              fontSize: 14,
               cursor: "pointer",
-              transition: "border-color 0.15s",
+              transition: "color 0.15s, border-color 0.15s",
             }}
+            onMouseEnter={(e) => { e.target.style.color = C.text; e.target.style.borderColor = C.border2; }}
+            onMouseLeave={(e) => { e.target.style.color = C.sub; }}
           >
             Read the Research
           </button>
+          </div>
+        </div>
+
+        {/* Hero right side — live mini-stats */}
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+        }}>
+          {[
+            { label: "SENSORS ONLINE",  value: "11",        sub: "SW Chicago suburbs" },
+            { label: "UPDATE INTERVAL", value: "5 min",     sub: "GitHub Actions cron" },
+            { label: "DATA SINCE",      value: "Nov 2025",  sub: "85,014 historical readings" },
+            { label: "BEST MODEL MAE",  value: "0.51 µg/m³",sub: "Lewis University sensor" },
+          ].map(({ label: lbl, value, sub }) => (
+            <div key={lbl} style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "14px 18px",
+              background: C.surface,
+              border: `1px solid ${C.border}`,
+              borderRadius: 6,
+            }}>
+              <span style={{ fontFamily: T.mono, fontSize: 10, letterSpacing: "0.08em", color: C.muted }}>{lbl}</span>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 16, color: C.text }}>{value}</div>
+                <div style={{ fontFamily: T.display, fontSize: 11, color: C.muted, marginTop: 1 }}>{sub}</div>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 

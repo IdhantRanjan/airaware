@@ -93,7 +93,12 @@ export default function Live() {
         const rows   = liveReadings[sid];
         const latest = rows[rows.length - 1];
         const aqi    = latest.aqi ?? pmToAqi(latest.pm_cf1);
-        return { ...meta, id: sid, readings: rows, latest, aqi, aqiMeta: aqiMeta(aqi), trust: latest.trust_score ?? 0, hasData: true };
+        // For sparklines: use static data as source when live has fewer than 10 readings
+        const staticRows = staticData?.sensors?.[sid]
+          ? (staticData.sensors[sid].data || []).map((d) => ({ ...d, t_ms: d.t, pm_cf1: d.pm, pm_a: d.a, pm_b: d.b }))
+          : [];
+        const sparkReadings = rows.length >= 10 ? rows : staticRows;
+        return { ...meta, id: sid, readings: rows, sparkReadings, latest, aqi, aqiMeta: aqiMeta(aqi), trust: latest.trust_score ?? 0, hasData: true };
       }
 
       if (staticData?.sensors?.[sid]) {
@@ -101,7 +106,7 @@ export default function Live() {
         const rows   = (s.data || []).map((d) => ({ ...d, t_ms: d.t, pm_cf1: d.pm, pm_a: d.a, pm_b: d.b, temperature_c: d.temp, trust_score: d.trust }));
         const latest = { ...s.latest, pm_cf1: s.latest?.pm, pm_a: s.latest?.a, pm_b: s.latest?.b, temperature_c: s.latest?.temp, trust_score: s.latest?.trust };
         const aqi    = s.aqi ?? pmToAqi(latest.pm_cf1);
-        return { ...meta, id: sid, readings: rows, latest, aqi, aqiMeta: aqiMeta(aqi), trust: s.latest?.trust ?? 0, hasData: true };
+        return { ...meta, id: sid, readings: rows, sparkReadings: rows, latest, aqi, aqiMeta: aqiMeta(aqi), trust: s.latest?.trust ?? 0, hasData: true };
       }
 
       return { ...meta, id: sid, readings: [], latest: {}, aqi: 0, aqiMeta: aqiMeta(0), trust: 0, hasData: false };
@@ -207,7 +212,7 @@ export default function Live() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 16 }}>
               {sensors.map((sensor) => {
                 const tl   = trustLabel(sensor.trust);
-                const spark = sensor.readings.slice(-60);
+                const spark = (sensor.sparkReadings || sensor.readings).slice(-60);
                 return (
                   <div
                     key={sensor.id}

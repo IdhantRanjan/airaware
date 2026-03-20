@@ -83,7 +83,7 @@ export function relTime(ts) {
 export const card = (extra = {}) => ({
   background: C.surface,
   border: `1px solid ${C.border}`,
-  borderRadius: 14,
+  borderRadius: 8,
   padding: "28px 32px",
   ...extra,
 });
@@ -92,9 +92,9 @@ export const label = {
   fontFamily: T.display,
   fontSize: 11,
   fontWeight: 500,
-  letterSpacing: "0.1em",
+  letterSpacing: "0.09em",
   textTransform: "uppercase",
-  color: "#6060a0",
+  color: "#5a5a82",
 };
 
 export const sectionHeading = {
