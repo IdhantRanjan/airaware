@@ -1,12 +1,9 @@
-name: Live Sensor Collection
+name: Live Sensor Collection (disabled)
 
-# Runs every 5 minutes, 24/7.
-# Fetches all 11 sensors from PurpleAir, inserts readings into Supabase.
-# One batch per run (no while loop needed — GH Actions handles the cadence).
-on:
-  schedule:
-    - cron: "*/5 * * * *"   # Every 5 minutes
-  workflow_dispatch:          # Manual trigger from GitHub Actions UI
+# Disabled after the Supabase Edge Function collect-readings successfully
+# inserted fresh readings for all 11 configured sensors. The definition is
+# retained for reference, but it has no GitHub Actions triggers.
+on: {}
 
 jobs:
   collect:
